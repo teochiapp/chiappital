@@ -1,0 +1,227 @@
+import React, { useState } from 'react';
+import styled, { keyframes } from 'styled-components';
+import { useNavigate, Navigate } from 'react-router-dom';
+import { useStrapiAuth } from '../hooks/useApiTrades';
+import { Activity, Lock, ArrowRight } from 'lucide-react';
+
+const LoginContainer = () => {
+  const [answer, setAnswer] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { familyLogin, error, user } = useStrapiAuth();
+  const navigate = useNavigate();
+
+  // Si ya está logueado, redirigir a selección de cuenta
+  if (user) {
+    return <Navigate to="/select-account" replace />;
+  }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!answer.trim()) return;
+
+    setIsSubmitting(true);
+    const result = await familyLogin(answer);
+    setIsSubmitting(false);
+
+    if (result.success) {
+      navigate('/select-account');
+    }
+  };
+
+  return (
+    <Container>
+      <GradientOverlay />
+      
+      <LoginCard>
+        <LogoWrapper>
+          <IconContainer>
+            <Activity size={32} color="#651D23" />
+          </IconContainer>
+          <LogoText>Chiappital</LogoText>
+        </LogoWrapper>
+        
+        <Title>
+          <Lock size={24} />
+          Acceso Privado
+        </Title>
+        
+        <Form onSubmit={handleSubmit}>
+          <Label>¿Cuál es el nombre de tu perra salchicha?</Label>
+          <InputWrapper>
+            <Input 
+              type="password" 
+              value={answer}
+              onChange={(e) => setAnswer(e.target.value)}
+              placeholder="Escribe la respuesta..."
+              disabled={isSubmitting}
+              autoFocus
+            />
+          </InputWrapper>
+
+          {error && <ErrorMessage>{error}</ErrorMessage>}
+
+          <SubmitButton type="submit" disabled={isSubmitting || !answer.trim()}>
+            {isSubmitting ? 'Verificando...' : 'Entrar'}
+            <ArrowRight size={20} />
+          </SubmitButton>
+        </Form>
+      </LoginCard>
+    </Container>
+  );
+};
+
+// ─── Estilos (Similares a DevAuth pero más modernos) ─────────────────────────
+
+const fadeIn = keyframes`
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+`;
+
+const Container = styled.div`
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #0f172a;
+  position: relative;
+  overflow: hidden;
+`;
+
+const GradientOverlay = styled.div`
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle at center, rgba(101, 29, 35, 0.15) 0%, rgba(15, 23, 42, 1) 50%);
+  pointer-events: none;
+`;
+
+const LoginCard = styled.div`
+  background: rgba(30, 41, 59, 0.7);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 3rem;
+  border-radius: 24px;
+  width: 100%;
+  max-width: 440px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  z-index: 1;
+  animation: ${fadeIn} 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+`;
+
+const LogoWrapper = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 2.5rem;
+`;
+
+const IconContainer = styled.div`
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  background: rgba(101, 29, 35, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(101, 29, 35, 0.2);
+`;
+
+const LogoText = styled.h1`
+  font-size: 2rem;
+  font-weight: 800;
+  color: white;
+  margin: 0;
+  letter-spacing: -0.5px;
+`;
+
+const Title = styled.h2`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  font-size: 1.25rem;
+  color: #94a3b8;
+  font-weight: 500;
+  margin-bottom: 2rem;
+`;
+
+const Form = styled.form`
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+`;
+
+const Label = styled.label`
+  font-size: 1rem;
+  font-weight: 500;
+  color: #e2e8f0;
+  text-align: center;
+`;
+
+const InputWrapper = styled.div`
+  position: relative;
+`;
+
+const Input = styled.input`
+  width: 100%;
+  padding: 1rem 1.25rem;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  color: white;
+  font-size: 1.1rem;
+  transition: all 0.2s ease;
+  text-align: center;
+
+  &:focus {
+    outline: none;
+    border-color: #651D23;
+    box-shadow: 0 0 0 4px rgba(101, 29, 35, 0.1);
+  }
+
+  &::placeholder {
+    color: #64748b;
+  }
+`;
+
+const ErrorMessage = styled.div`
+  color: #ef4444;
+  font-size: 0.95rem;
+  background: rgba(239, 68, 68, 0.1);
+  padding: 0.75rem;
+  border-radius: 8px;
+  text-align: center;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+`;
+
+const SubmitButton = styled.button`
+  background: linear-gradient(135deg, #651D23 0%, #49151A 100%);
+  color: white;
+  border: none;
+  padding: 1rem;
+  border-radius: 12px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 0.5rem;
+
+  &:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px -10px rgba(101, 29, 35, 0.5);
+  }
+
+  &:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+`;
+
+export default LoginContainer;
