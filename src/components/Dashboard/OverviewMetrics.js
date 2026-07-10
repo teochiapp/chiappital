@@ -145,6 +145,11 @@ const OverviewContainer = styled.div`
     height: 4px;
     background: ${colors.gradients.primary};
   }
+
+  @media (max-width: 768px) {
+    padding: 1.5rem;
+    border-radius: 16px;
+  }
 `;
 
 const BalanceSection = styled.div`
@@ -189,6 +194,10 @@ const MainBalance = styled.h1`
   color: white;
   letter-spacing: -1px;
   font-family: 'Unbounded', sans-serif;
+
+  @media (max-width: 768px) {
+    font-size: 2.2rem;
+  }
 `;
 
 const EditButton = styled.button`
@@ -217,6 +226,7 @@ const EditControls = styled.div`
   padding: 0.5rem;
   border-radius: 16px;
   border: 1px solid rgba(255, 255, 255, 0.05);
+  flex-wrap: wrap;
 `;
 
 const InputWrapper = styled.div`
@@ -232,6 +242,11 @@ const DollarPrefix = styled.span`
   font-size: 2rem;
   font-weight: 800;
   font-family: 'Unbounded', sans-serif;
+
+  @media (max-width: 768px) {
+    font-size: 1.5rem;
+    left: 0.8rem;
+  }
 `;
 
 const Input = styled.input`
@@ -243,6 +258,7 @@ const Input = styled.input`
   border-radius: 12px;
   padding: 0.5rem 1rem 0.5rem 3rem;
   width: 250px;
+  max-width: 100%;
   font-family: 'Unbounded', sans-serif;
   transition: all 0.3s ease;
 
@@ -254,6 +270,12 @@ const Input = styled.input`
 
   &::placeholder {
     color: rgba(255, 255, 255, 0.2);
+  }
+
+  @media (max-width: 768px) {
+    width: 100%;
+    font-size: 1.8rem;
+    padding-left: 2.5rem;
   }
 `;
 

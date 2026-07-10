@@ -1,7 +1,7 @@
 {
-  "name": "simpletrade-api",
+  "name": "chiappital-api",
   "version": "1.0.0",
-  "description": "SimpleTrade REST API - Node.js + Express + MySQL",
+  "description": "Chiappital REST API - Node.js + Express + MySQL",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

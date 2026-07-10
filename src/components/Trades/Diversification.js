@@ -18,6 +18,11 @@ const DiversificationContainer = styled.div`
 const Header = styled.div`
   padding: 2rem;
   padding-bottom: 0;
+
+  @media (max-width: 768px) {
+    padding: 1.5rem;
+    padding-bottom: 0;
+  }
 `;
 
 const Title = styled.h2`
@@ -29,6 +34,10 @@ const Title = styled.h2`
   display: flex;
   align-items: center;
   gap: 0.5rem;
+
+  @media (max-width: 768px) {
+    font-size: 1.5rem;
+  }
 `;
 
 const Subtitle = styled.p`
@@ -40,8 +49,21 @@ const Subtitle = styled.p`
 
 const TabsContainer = styled.div`
   display: flex;
-  background: rgba(255, 255, 255, 0.02);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  gap: 1rem;
+  padding: 0 2rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  overflow-x: auto;
+  
+  /* Esconder scrollbar pero permitir scroll */
+  &::-webkit-scrollbar {
+    display: none;
+  }
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+
+  @media (max-width: 768px) {
+    padding: 0 1.5rem;
+  }
 `;
 
 const TabButton = styled(motion.button)`
@@ -70,6 +92,10 @@ const TabButton = styled(motion.button)`
 const TabContent = styled.div`
   padding: 2rem;
   min-height: 500px;
+
+  @media (max-width: 768px) {
+    padding: 1.5rem;
+  }
 `;
 
 const ChartContainer = styled.div`
@@ -89,6 +115,14 @@ const GlobalStatsGrid = styled.div`
   grid-template-columns: repeat(2, 1fr);
   gap: 1rem;
   padding: 1.5rem 2rem 0;
+
+  @media (max-width: 768px) {
+    padding: 1.5rem 1.5rem 0;
+  }
+
+  @media (max-width: 480px) {
+    grid-template-columns: 1fr;
+  }
 `;
 
 const StatCard = styled.div`
