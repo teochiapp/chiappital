@@ -149,18 +149,33 @@ async function initializeDatabase() {
     }
   }
 
-  // Migración: Agregar columnas para Lab Data (JSON)
+  // Migración: Agregar columna sector_analysis (JSON)
   try {
-    await db.execute(`
-      ALTER TABLE users 
-      ADD COLUMN sector_analysis JSON DEFAULT NULL,
-      ADD COLUMN country_analysis JSON DEFAULT NULL,
-      ADD COLUMN checklist_history JSON DEFAULT NULL;
-    `);
-    console.log('✅ Migración: Columnas JSON para Lab agregadas a users');
+    await db.execute(`ALTER TABLE users ADD COLUMN sector_analysis JSON DEFAULT NULL;`);
+    console.log('✅ Migración: Columna sector_analysis agregada a users');
   } catch (error) {
     if (error.code !== 'ER_DUP_FIELDNAME') {
-      console.error('⚠️ Error al intentar agregar columnas de Lab:', error.message);
+      console.error('⚠️ Error al agregar sector_analysis:', error.message);
+    }
+  }
+
+  // Migración: Agregar columna country_analysis (JSON)
+  try {
+    await db.execute(`ALTER TABLE users ADD COLUMN country_analysis JSON DEFAULT NULL;`);
+    console.log('✅ Migración: Columna country_analysis agregada a users');
+  } catch (error) {
+    if (error.code !== 'ER_DUP_FIELDNAME') {
+      console.error('⚠️ Error al agregar country_analysis:', error.message);
+    }
+  }
+
+  // Migración: Agregar columna checklist_history (JSON)
+  try {
+    await db.execute(`ALTER TABLE users ADD COLUMN checklist_history JSON DEFAULT NULL;`);
+    console.log('✅ Migración: Columna checklist_history agregada a users');
+  } catch (error) {
+    if (error.code !== 'ER_DUP_FIELDNAME') {
+      console.error('⚠️ Error al agregar checklist_history:', error.message);
     }
   }
 
