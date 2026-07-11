@@ -1,12 +1,10 @@
 import React, { useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useStrapiAuth } from '../../hooks/useApiTrades';
-import DevAuth from './DevAuth';
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading, error } = useStrapiAuth();
 
-  // Debug logging
   useEffect(() => {
     console.log('🛡️ ProtectedRoute - Estado actual:', { 
       user: user ? `${user.email || user.username}` : null, 
@@ -15,7 +13,7 @@ const ProtectedRoute = ({ children }) => {
     });
   }, [user, loading, error]);
 
-  // Si está cargando, mostrar loader
+  // Si está cargando, mostrar loader alineado con el diseño de la app
   if (loading) {
     return (
       <div style={{
@@ -25,18 +23,15 @@ const ProtectedRoute = ({ children }) => {
         alignItems: 'center',
         height: '100vh',
         fontFamily: 'Unbounded, sans-serif',
-        fontSize: '1.2rem',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-        color: 'white'
+        fontSize: '1rem',
+        background: '#0f172a',
+        color: '#94a3b8',
+        gap: '1rem',
       }}>
-        <div style={{ marginBottom: '1rem' }}>⏳</div>
-        <div>Verificando autenticación...</div>
+        <div style={{ fontSize: '2rem' }}>⏳</div>
+        <div>Verificando sesión...</div>
         {error && (
-          <div style={{ 
-            marginTop: '1rem', 
-            fontSize: '0.9rem', 
-            color: '#ffcccc' 
-          }}>
+          <div style={{ fontSize: '0.85rem', color: '#f43f5e' }}>
             Error: {error}
           </div>
         )}
@@ -44,13 +39,12 @@ const ProtectedRoute = ({ children }) => {
     );
   }
 
-  // Si no hay usuario autenticado, mostrar login
+  // Si no hay usuario autenticado, redirigir al Login
   if (!user) {
-    console.log('🚫 ProtectedRoute - No hay usuario, mostrando DevAuth');
-    return <DevAuth />;
+    console.log('🚫 ProtectedRoute - No hay usuario, redirigiendo a /login');
+    return <Navigate to="/login" replace />;
   }
 
-  // Si está autenticado, mostrar el contenido protegido
   console.log('✅ ProtectedRoute - Usuario autenticado, mostrando contenido');
   return children;
 };

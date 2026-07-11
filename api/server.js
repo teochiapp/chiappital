@@ -8,6 +8,8 @@ const authRouter = require('./routes/auth');
 const tradesRouter = require('./routes/trades');
 const balancesRouter = require('./routes/balances');
 const historicalMetricsRouter = require('./routes/historicalMetrics');
+const labRouter = require('./routes/lab');
+const personalRouter = require('./routes/personal');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -16,6 +18,7 @@ const PORT = process.env.PORT || 3001;
 const allowedOrigins = [
   process.env.ALLOWED_ORIGIN,
   'http://localhost:3000', // React dev server
+  'https://chiappital.surcodes.com', // Producción frontend
 ].filter(Boolean);
 
 app.use(cors({
@@ -65,6 +68,12 @@ app.use('/api/balances', balancesRouter);
 
 // Historical Metrics
 app.use('/api/historical-metrics', historicalMetricsRouter);
+
+// Lab Preferences
+app.use('/api/lab', labRouter);
+
+// Personal Hub
+app.use('/api/personal', personalRouter);
 
 // ─── 404 ──────────────────────────────────────────────────────────────────────
 app.use((req, res) => {

@@ -1,10 +1,12 @@
 // config/environment.js - Configuración de variables de entorno
 const config = {
-  // En desarrollo: http://localhost:3001
+  // En desarrollo: http://localhost:3001 (cuando el backend local está corriendo)
   // En producción: la URL de tu Node.js App en Hostinger
-  API_URL: process.env.NODE_ENV === 'production' 
-    ? 'https://api.ivory-hare-649631.hostingersite.com' // Ajustá este subdominio al que configures en Hostinger
-    : 'http://localhost:3001',
+  API_URL: process.env.REACT_APP_API_URL || (
+    process.env.NODE_ENV === 'production'
+      ? 'https://apichiappital.surcodes.com'
+      : 'https://apichiappital.surcodes.com'
+  ),
 
   // APIs externas de mercado (sin cambios)
   FINNHUB_API_KEY: process.env.REACT_APP_FINNHUB_API_KEY || 'd3t6mg9r01qqdgfufaggd3t6mg9r01qqdgfufah0',

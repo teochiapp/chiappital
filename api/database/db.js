@@ -61,6 +61,8 @@ async function initializeDatabase() {
       strategy             VARCHAR(100) DEFAULT NULL,
       emotions             ENUM('confident','nervous','greedy','fearful','calm','frustrated') DEFAULT NULL,
       notes                TEXT DEFAULT NULL,
+      custom_country       VARCHAR(50) DEFAULT NULL,
+      custom_sector        VARCHAR(50) DEFAULT NULL,
       status               ENUM('open','closed','cancelled') NOT NULL DEFAULT 'open',
       result               DECIMAL(10, 4) DEFAULT NULL,
       closed_at            DATETIME DEFAULT NULL,
@@ -132,6 +134,170 @@ async function initializeDatabase() {
       console.error('⚠️ Error al intentar agregar entry_price_ars:', error.message);
     }
   }
+
+  // Migración: Agregar custom_country y custom_sector
+  try {
+    await db.execute(`
+      ALTER TABLE trades 
+      ADD COLUMN custom_country VARCHAR(50) DEFAULT NULL AFTER notes,
+      ADD COLUMN custom_sector VARCHAR(50) DEFAULT NULL AFTER custom_country;
+    `);
+    console.log('✅ Migración: Columnas custom_country y custom_sector agregadas a trades');
+  } catch (error) {
+    if (error.code !== 'ER_DUP_FIELDNAME') {
+      console.error('⚠️ Error al intentar agregar custom_country y custom_sector:', error.message);
+    }
+  }
+
+  // Migración: Agregar columnas para Lab Data (JSON)
+  try {
+    await db.execute(`
+      ALTER TABLE users 
+      ADD COLUMN sector_analysis JSON DEFAULT NULL,
+      ADD COLUMN country_analysis JSON DEFAULT NULL,
+      ADD COLUMN checklist_history JSON DEFAULT NULL;
+    `);
+    console.log('✅ Migración: Columnas JSON para Lab agregadas a users');
+  } catch (error) {
+    if (error.code !== 'ER_DUP_FIELDNAME') {
+      console.error('⚠️ Error al intentar agregar columnas de Lab:', error.message);
+    }
+  }
+
+  // ─── Personal Hub Tables ──────────────────────────────────────────────────
+
+  // Feature flags por usuario
+  await db.execute(`
+    CREATE TABLE IF NOT EXISTS features (
+      id           INT AUTO_INCREMENT PRIMARY KEY,
+      user_id      INT NOT NULL,
+      feature_name VARCHAR(100) NOT NULL,
+      enabled      TINYINT(1) NOT NULL DEFAULT 0,
+      created_at   DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at   DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+      UNIQUE KEY idx_user_feature (user_id, feature_name)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `);
+
+  // Hábitos
+  await db.execute(`
+    CREATE TABLE IF NOT EXISTS habits (
+      id          INT AUTO_INCREMENT PRIMARY KEY,
+      user_id     INT NOT NULL,
+      name        VARCHAR(200) NOT NULL,
+      description TEXT DEFAULT NULL,
+      frequency   ENUM('daily','weekly') NOT NULL DEFAULT 'daily',
+      color       VARCHAR(7) DEFAULT '#52B788',
+      icon        VARCHAR(50) DEFAULT NULL,
+      active      TINYINT(1) NOT NULL DEFAULT 1,
+      created_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at  DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+      INDEX idx_user_habits (user_id)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `);
+
+  // Completados de hábitos (un registro por día/hábito)
+  await db.execute(`
+    CREATE TABLE IF NOT EXISTS habit_completions (
+      id           INT AUTO_INCREMENT PRIMARY KEY,
+      habit_id     INT NOT NULL,
+      user_id      INT NOT NULL,
+      completed_on DATE NOT NULL,
+      created_at   DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (habit_id) REFERENCES habits(id) ON DELETE CASCADE,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+      UNIQUE KEY idx_habit_date (habit_id, completed_on)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `);
+
+  // Objetivos personales
+  await db.execute(`
+    CREATE TABLE IF NOT EXISTS personal_goals (
+      id          INT AUTO_INCREMENT PRIMARY KEY,
+      user_id     INT NOT NULL,
+      title       VARCHAR(300) NOT NULL,
+      description TEXT DEFAULT NULL,
+      category    ENUM('salud','carrera','aprendizaje','relaciones','viajes','desarrollo') NOT NULL DEFAULT 'desarrollo',
+      progress    DECIMAL(5,2) NOT NULL DEFAULT 0,
+      deadline    DATE DEFAULT NULL,
+      status      ENUM('active','completed','paused','cancelled') NOT NULL DEFAULT 'active',
+      created_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at  DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+      INDEX idx_user_goals (user_id)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `);
+
+  // Libros
+  await db.execute(`
+    CREATE TABLE IF NOT EXISTS books (
+      id          INT AUTO_INCREMENT PRIMARY KEY,
+      user_id     INT NOT NULL,
+      title       VARCHAR(300) NOT NULL,
+      author      VARCHAR(200) DEFAULT NULL,
+      status      ENUM('pending','reading','completed') NOT NULL DEFAULT 'pending',
+      progress    INT NOT NULL DEFAULT 0,
+      total_pages INT DEFAULT NULL,
+      notes       TEXT DEFAULT NULL,
+      rating      TINYINT DEFAULT NULL,
+      cover_url   VARCHAR(500) DEFAULT NULL,
+      created_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at  DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+      INDEX idx_user_books (user_id)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `);
+
+  // Entrenamientos
+  await db.execute(`
+    CREATE TABLE IF NOT EXISTS workouts (
+      id          INT AUTO_INCREMENT PRIMARY KEY,
+      user_id     INT NOT NULL,
+      type        VARCHAR(100) NOT NULL,
+      duration    INT DEFAULT NULL,
+      date        DATE NOT NULL,
+      notes       TEXT DEFAULT NULL,
+      created_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+      INDEX idx_user_workouts (user_id)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `);
+
+  // Idiomas
+  await db.execute(`
+    CREATE TABLE IF NOT EXISTS languages (
+      id            INT AUTO_INCREMENT PRIMARY KEY,
+      user_id       INT NOT NULL,
+      language      VARCHAR(100) NOT NULL,
+      level         ENUM('beginner','elementary','intermediate','upper_intermediate','advanced','proficient') NOT NULL DEFAULT 'beginner',
+      hours_studied DECIMAL(8,2) NOT NULL DEFAULT 0,
+      goal          TEXT DEFAULT NULL,
+      created_at    DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at    DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+      UNIQUE KEY idx_user_language (user_id, language)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `);
+
+  // Tareas
+  await db.execute(`
+    CREATE TABLE IF NOT EXISTS tasks (
+      id          INT AUTO_INCREMENT PRIMARY KEY,
+      user_id     INT NOT NULL,
+      title       VARCHAR(300) NOT NULL,
+      priority    ENUM('low','medium','high') NOT NULL DEFAULT 'medium',
+      status      ENUM('pending','in_progress','completed') NOT NULL DEFAULT 'pending',
+      deadline    DATE DEFAULT NULL,
+      goal_id     INT DEFAULT NULL,
+      created_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at  DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+      FOREIGN KEY (goal_id) REFERENCES personal_goals(id) ON DELETE SET NULL,
+      INDEX idx_user_tasks (user_id)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `);
 
   console.log('✅ Base de datos inicializada correctamente');
 }
