@@ -2,11 +2,14 @@ import React, { useState } from 'react';
 import styled, { keyframes } from 'styled-components';
 import { useNavigate, Navigate } from 'react-router-dom';
 import { useStrapiAuth } from '../hooks/useApiTrades';
-import { Activity, Lock, ArrowRight } from 'lucide-react';
+import { Lock, ArrowRight } from 'lucide-react';
+import Logo from '../components/common/Logo';
 
 const LoginContainer = () => {
+  const [name, setName] = useState('');
   const [answer, setAnswer] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [nameError, setNameError] = useState('');
   const { familyLogin, error, user } = useStrapiAuth();
   const navigate = useNavigate();
 
@@ -17,7 +20,14 @@ const LoginContainer = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!answer.trim()) return;
+    setNameError('');
+    if (!name.trim() || !answer.trim()) return;
+
+    const allowedNames = ['teo', 'fausto', 'ciro', 'jorge'];
+    if (!allowedNames.includes(name.trim().toLowerCase())) {
+      setNameError('Acceso denegado: Nombre no reconocido.');
+      return;
+    }
 
     setIsSubmitting(true);
     const result = await familyLogin(answer);
@@ -31,36 +41,45 @@ const LoginContainer = () => {
   return (
     <Container>
       <GradientOverlay />
-      
+
       <LoginCard>
         <LogoWrapper>
-          <IconContainer>
-            <Activity size={32} color="#651D23" />
-          </IconContainer>
-          <LogoText>Chiappital</LogoText>
+          <Logo size="64px" fontSize="2.2rem" gap="1rem" />
         </LogoWrapper>
-        
+
         <Title>
           <Lock size={24} />
-          Acceso Privado
+          Acceso Familiar
         </Title>
-        
+
         <Form onSubmit={handleSubmit}>
-          <Label>¿Cuál es el nombre de tu perra salchicha?</Label>
+          <Label>Nombre</Label>
           <InputWrapper>
-            <Input 
-              type="password" 
-              value={answer}
-              onChange={(e) => setAnswer(e.target.value)}
-              placeholder="Escribe la respuesta..."
+            <Input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Tu nombre..."
               disabled={isSubmitting}
               autoFocus
             />
           </InputWrapper>
 
+          <Label style={{ marginTop: '1rem' }}>¿Cuál es el nombre de tu perra salchicha?</Label>
+          <InputWrapper>
+            <Input
+              type="password"
+              value={answer}
+              onChange={(e) => setAnswer(e.target.value)}
+              placeholder="Escribe la respuesta..."
+              disabled={isSubmitting}
+            />
+          </InputWrapper>
+
+          {nameError && <ErrorMessage>{nameError}</ErrorMessage>}
           {error && <ErrorMessage>{error}</ErrorMessage>}
 
-          <SubmitButton type="submit" disabled={isSubmitting || !answer.trim()}>
+          <SubmitButton type="submit" disabled={isSubmitting || !answer.trim() || !name.trim()}>
             {isSubmitting ? 'Verificando...' : 'Entrar'}
             <ArrowRight size={20} />
           </SubmitButton>
@@ -118,24 +137,7 @@ const LogoWrapper = styled.div`
   margin-bottom: 2.5rem;
 `;
 
-const IconContainer = styled.div`
-  width: 56px;
-  height: 56px;
-  border-radius: 16px;
-  background: rgba(101, 29, 35, 0.1);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid rgba(101, 29, 35, 0.2);
-`;
 
-const LogoText = styled.h1`
-  font-size: 2rem;
-  font-weight: 800;
-  color: white;
-  margin: 0;
-  letter-spacing: -0.5px;
-`;
 
 const Title = styled.h2`
   display: flex;

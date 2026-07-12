@@ -4,6 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import { useAccount } from '../context/AccountContext';
 import { Wallet, Users, ArrowRight, LogOut } from 'lucide-react';
 import { useStrapiAuth } from '../hooks/useApiTrades';
+import { colors, withOpacity } from '../styles/colors';
+import Logo from '../components/common/Logo';
 
 const AccountSelectionContainer = () => {
   const { changeAccount } = useAccount();
@@ -27,7 +29,10 @@ const AccountSelectionContainer = () => {
         Salir
       </LogoutButton>
       <Header>
-        <Title>Bienvenido a Chiappital</Title>
+        <TitleContainer>
+          <Logo showText={false} size="48px" />
+          <Title>Bienvenido a Chiappital</Title>
+        </TitleContainer>
         <Subtitle>Seleccioná la cartera que querés visualizar</Subtitle>
       </Header>
 
@@ -88,11 +93,19 @@ const Header = styled.div`
   animation: ${fadeIn} 0.5s ease-out;
 `;
 
+const TitleContainer = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+`;
+
 const Title = styled.h1`
   font-size: 2.5rem;
   font-weight: 800;
-  margin-bottom: 1rem;
-  background: linear-gradient(to right, #fff, #94a3b8);
+  margin: 0;
+  background: linear-gradient(to right, #fff, ${colors.secondary});
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 `;
@@ -125,13 +138,13 @@ const IconWrapper = styled.div`
   transition: transform 0.3s ease;
 
   &.propia {
-    background: rgba(101, 29, 35, 0.1);
-    color: #A9333F;
+    background: ${withOpacity(colors.primary, 0.1)};
+    color: ${colors.primary};
   }
 
   &.compartida {
-    background: rgba(16, 185, 129, 0.1);
-    color: #34d399;
+    background: ${withOpacity(colors.secondary, 0.1)};
+    color: ${colors.secondary};
   }
 `;
 
@@ -146,8 +159,8 @@ const ActionText = styled.div`
   transform: translateX(-10px);
   transition: all 0.3s ease;
 
-  &.propia { color: #A9333F; }
-  &.compartida { color: #34d399; }
+  &.propia { color: ${colors.primary}; }
+  &.compartida { color: ${colors.secondary}; }
 `;
 
 const AccountCard = styled.div`

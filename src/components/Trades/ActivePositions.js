@@ -606,7 +606,14 @@ const ActivePositions = ({ openTrades, loading, error, onCloseTrade, onUpdateTra
         </PriceUpdateHeader>
         
         <PositionsGrid>
-          {openTrades.map((trade, index) => (
+          {[...openTrades].sort((a, b) => {
+            const pnlA = getUnrealizedPnL(a);
+            const pnlB = getUnrealizedPnL(b);
+            if (pnlA === null && pnlB === null) return 0;
+            if (pnlA === null) return 1;
+            if (pnlB === null) return -1;
+            return pnlB - pnlA;
+          }).map((trade, index) => (
             <PositionCard
               key={trade.id}
               initial={{ opacity: 0, y: 20 }}

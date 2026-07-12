@@ -22,8 +22,33 @@ const HistoricalMetrics = () => {
   const groupedMetrics = useMemo(() => {
     if (!metrics || metrics.length === 0) return {};
     
+    // Sort all metrics chronologically
+    const monthMap = { 'ENERO': 0, 'FEBRERO': 1, 'MARZO': 2, 'ABRIL': 3, 'MAYO': 4, 'JUNIO': 5, 'JULIO': 6, 'AGOSTO': 7, 'SEPTIEMBRE': 8, 'OCTUBRE': 9, 'NOVIEMBRE': 10, 'DICIEMBRE': 11 };
+    const parseMonthYear = (str) => {
+      const match = str.match(/([A-Z]+) \((\d{4})\)/);
+      if (match) return new Date(parseInt(match[2]), monthMap[match[1]]);
+      return new Date(0);
+    };
+
+    const sortedMetrics = [...metrics].sort((a, b) => parseMonthYear(a.month_year) - parseMonthYear(b.month_year));
+
+    // Compute automatic usd_start
+    const computedMetrics = sortedMetrics.map((metric, index) => {
+      if (index === 0) return { ...metric, isFirstMonth: true }; // First month keeps its own usd_start
+      
+      const prev = sortedMetrics[index - 1];
+      const prevUsdEnd = parseFloat(prev.usd_end) || 0;
+      const prevDeposits = parseFloat(prev.deposits) || 0;
+      
+      return {
+        ...metric,
+        usd_start: prevUsdEnd + prevDeposits,
+        isFirstMonth: false
+      };
+    });
+    
     const groups = {};
-    metrics.forEach(metric => {
+    computedMetrics.forEach(metric => {
       const match = metric.month_year.match(/\((\d{4})\)/);
       const year = match ? match[1] : 'Desconocido';
       if (!groups[year]) groups[year] = [];
@@ -166,7 +191,9 @@ const HistoricalMetrics = () => {
   const formatPercent = (val) => `${parseFloat(val).toFixed(2)}%`;
 
   const renderCell = (metric, field, type = 'currency') => {
-    if (editingId === metric.id && field !== 'difference') {
+    const canEditUsdStart = metric.isFirstMonth;
+
+    if (editingId === metric.id && field !== 'difference' && field !== 'profit' && (field !== 'usd_start' || canEditUsdStart)) {
       return (
         <Input
           type="number"

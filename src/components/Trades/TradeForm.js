@@ -4,6 +4,7 @@ import styled from 'styled-components';
 import { Search, TrendingUp, DollarSign, Percent, Shield, Target, BookOpen, Lightbulb } from 'lucide-react';
 import SymbolSearch from '../common/SymbolSearch';
 import { colors } from '../../styles/colors';
+import { getAllCountries, getAllSectors } from '../../config/marketData';
 
 // Helper function para convertir valores de estrategia a nombres legibles
 export const getStrategyDisplayName = (strategyValue) => {
@@ -229,7 +230,9 @@ const TradeForm = ({ onTradeAdded }) => {
     entryPriceArs: '',
     portfolioPercentage: '',
     stopLoss: '',
-    takeProfit: ''
+    takeProfit: '',
+    customCountry: '',
+    customSector: ''
   });
 
   const [loading, setLoading] = useState(false);
@@ -274,6 +277,8 @@ const TradeForm = ({ onTradeAdded }) => {
         portfolio_percentage: formData.portfolioPercentage ? parseFloat(formData.portfolioPercentage) : null,
         stop_loss: formData.stopLoss ? parseFloat(formData.stopLoss) : null,
         take_profit: formData.takeProfit ? parseFloat(formData.takeProfit) : null,
+        custom_country: formData.symbolData?.isCustom ? formData.customCountry : null,
+        custom_sector: formData.symbolData?.isCustom ? formData.customSector : null,
         status: 'open'
       };
 
@@ -291,7 +296,9 @@ const TradeForm = ({ onTradeAdded }) => {
         entryPriceArs: '',
         portfolioPercentage: '',
         stopLoss: '',
-        takeProfit: ''
+        takeProfit: '',
+        customCountry: '',
+        customSector: ''
       });
 
     } catch (err) {
@@ -310,7 +317,9 @@ const TradeForm = ({ onTradeAdded }) => {
       entryPriceArs: '',
       portfolioPercentage: '',
       stopLoss: '',
-      takeProfit: ''
+      takeProfit: '',
+      customCountry: '',
+      customSector: ''
     });
     setError('');
     setSuccess('');
@@ -360,7 +369,49 @@ const TradeForm = ({ onTradeAdded }) => {
               )}
             </FormGroup>
 
-
+            {formData.symbolData?.isCustom && (
+              <>
+                <FormGroup>
+                  <Label htmlFor="customCountry">
+                    🌎 País de Origen (Diversificación)
+                  </Label>
+                  <Select
+                    id="customCountry"
+                    name="customCountry"
+                    value={formData.customCountry}
+                    onChange={handleInputChange}
+                    required
+                  >
+                    <option value="">Selecciona un país...</option>
+                    {getAllCountries().map(country => (
+                      <option key={country.code} value={country.code}>
+                        {country.name}
+                      </option>
+                    ))}
+                  </Select>
+                </FormGroup>
+                
+                <FormGroup>
+                  <Label htmlFor="customSector">
+                    🏭 Sector (Diversificación)
+                  </Label>
+                  <Select
+                    id="customSector"
+                    name="customSector"
+                    value={formData.customSector}
+                    onChange={handleInputChange}
+                    required
+                  >
+                    <option value="">Selecciona un sector...</option>
+                    {getAllSectors().map(sector => (
+                      <option key={sector.code} value={sector.code}>
+                        {sector.name}
+                      </option>
+                    ))}
+                  </Select>
+                </FormGroup>
+              </>
+            )}
 
             <FormGroup>
               <Label htmlFor="entryPrice">

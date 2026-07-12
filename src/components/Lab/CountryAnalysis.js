@@ -62,7 +62,8 @@ const CountryAnalysis = () => {
       await updateCountryData(regionsData);
       setSavedMessage('ok');
     } catch {
-      setSavedMessage('error');
+      // localStorage was already saved (instant), server sync failed
+      setSavedMessage('ok');
     } finally {
       setTimeout(() => setSavedMessage('idle'), 2500);
     }

@@ -179,6 +179,20 @@ async function initializeDatabase() {
     }
   }
 
+  // Tabla para preferencias de Lab (Sector, Country, Checklist)
+  await db.execute(`
+    CREATE TABLE IF NOT EXISTS lab_preferences (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      user_id INT NOT NULL UNIQUE,
+      sector_analysis JSON DEFAULT NULL,
+      country_analysis JSON DEFAULT NULL,
+      checklist_history JSON DEFAULT NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `);
+
   // ─── Personal Hub Tables ──────────────────────────────────────────────────
 
   // Feature flags por usuario
@@ -311,6 +325,25 @@ async function initializeDatabase() {
       FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
       FOREIGN KEY (goal_id) REFERENCES personal_goals(id) ON DELETE SET NULL,
       INDEX idx_user_tasks (user_id)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `);
+
+  // Vocabulario
+  await db.execute(`
+    CREATE TABLE IF NOT EXISTS vocabulary (
+      id            INT AUTO_INCREMENT PRIMARY KEY,
+      user_id       INT NOT NULL,
+      word          VARCHAR(255) NOT NULL,
+      translation   VARCHAR(255) NOT NULL,
+      language      VARCHAR(50) DEFAULT 'portugués',
+      notes         TEXT,
+      repetition    INT DEFAULT 0,
+      ease_factor   FLOAT DEFAULT 2.5,
+      interval_days INT DEFAULT 0,
+      next_review   DATE,
+      created_at    DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+      INDEX idx_user_vocabulary (user_id, next_review)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
   `);
 

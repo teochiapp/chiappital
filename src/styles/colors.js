@@ -12,7 +12,16 @@ export const colors = {
   primary: '#651D23',        // Rojo granate elegante - Botones principales, encabezados
   primaryDark: '#49151A',    // Rojo granate oscuro - Hover states, sombras
   secondary: '#D4AF37',      // Dorado elegante - Elementos secundarios, acentos
-  
+
+  // === PERSONAL HUB ===
+  personal: {
+    primary: '#2D6A4F',      // Esmeralda oscuro - Crecimiento, disciplina
+    primaryLight: '#52B788', // Verde menta - Highlights, badges, accents
+    primaryDark: '#1B4332',  // Esmeralda muy oscuro - Hover states
+    accent: '#74C69D',       // Verde claro suave - Fondos activos
+    surface: '#0a1f16',      // Fondo oscuro verdoso para cards
+  },
+
   // === COLORES NEUTROS ===
   white: '#F2F2F2',         // Blanco suave - Fondos, tarjetas
   black: '#1a1a1a',         // Negro profundo - Textos principales

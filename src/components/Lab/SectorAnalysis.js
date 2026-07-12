@@ -69,7 +69,9 @@ const SectorAnalysis = () => {
       await updateSectorData(sectorsData);
       setSavedMessage('ok');
     } catch {
-      setSavedMessage('error');
+      // localStorage was already saved (instant), server sync failed
+      // Show 'ok' since data IS persisted locally
+      setSavedMessage('ok');
     } finally {
       setTimeout(() => setSavedMessage('idle'), 2500);
     }

@@ -3,45 +3,68 @@ import apiService from '../services/apiService';
 
 const LabContext = createContext();
 
-export const useLabData = () => {
-  return useContext(LabContext);
+export const useLabData = () => useContext(LabContext);
+
+// ─── localStorage helpers ─────────────────────────────────────────────────────
+const LS_KEYS = {
+  sector: 'chiappital_sectorAnalysis',
+  country: 'chiappital_countryAnalysis',
+  checklist: 'chiappital_checklistHistory',
+};
+
+const lsGet = (key, fallback) => {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : fallback;
+  } catch { return fallback; }
+};
+
+const lsSet = (key, value) => {
+  try { localStorage.setItem(key, JSON.stringify(value)); } catch {}
+};
+
+// ─── Defensive server-response parser ────────────────────────────────────────
+const safeParse = (val, fallback) => {
+  if (!val) return fallback;
+  if (typeof val === 'string') { try { return JSON.parse(val); } catch { return fallback; } }
+  return val;
 };
 
 export const LabProvider = ({ children }) => {
-  const [sectorData, setSectorData] = useState({});
-  const [countryData, setCountryData] = useState({});
-  const [checklistHistory, setChecklistHistory] = useState([]);
-  const [loading, setLoading] = useState(true);
+  // Initialize immediately from localStorage — no loading delay
+  const [sectorData, setSectorData] = useState(() => lsGet(LS_KEYS.sector, {}));
+  const [countryData, setCountryData] = useState(() => lsGet(LS_KEYS.country, {}));
+  const [checklistHistory, setChecklistHistory] = useState(() => lsGet(LS_KEYS.checklist, []));
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  // Try to sync from server on mount (non-blocking)
   const fetchLabData = useCallback(async () => {
     try {
       setLoading(true);
       const data = await apiService.getLabPreferences();
+      const serverSector = safeParse(data.sectorAnalysis, null);
+      const serverCountry = safeParse(data.countryAnalysis, null);
+      const serverChecklist = safeParse(data.checklistHistory, null);
 
-      // Defensive parse: backend may return JSON as string in some MySQL configs
-      const safeParse = (val, fallback) => {
-        if (!val) return fallback;
-        if (typeof val === 'string') { try { return JSON.parse(val); } catch { return fallback; } }
-        return val;
-      };
-
-      setSectorData(safeParse(data.sectorAnalysis, {}));
-      setCountryData(safeParse(data.countryAnalysis, {}));
-      setChecklistHistory(safeParse(data.checklistHistory, []));
+      // Only update if server has data (don't overwrite local with empty)
+      if (serverSector && Object.keys(serverSector).length > 0) {
+        setSectorData(serverSector);
+        lsSet(LS_KEYS.sector, serverSector);
+      }
+      if (serverCountry && Object.keys(serverCountry).length > 0) {
+        setCountryData(serverCountry);
+        lsSet(LS_KEYS.country, serverCountry);
+      }
+      if (serverChecklist && serverChecklist.length > 0) {
+        setChecklistHistory(serverChecklist);
+        lsSet(LS_KEYS.checklist, serverChecklist);
+      }
       setError(null);
     } catch (err) {
-      console.error('Error fetching lab data:', err);
-      // Fallback a localStorage si falla la DB o no hay conexión
-      const s = localStorage.getItem('sectorAnalysis');
-      const c = localStorage.getItem('countryAnalysis');
-      const h = localStorage.getItem('checklistHistory');
-      
-      if (s) setSectorData(JSON.parse(s));
-      if (c) setCountryData(JSON.parse(c));
-      if (h) setChecklistHistory(JSON.parse(h));
-      
-      setError(err.message);
+      // Server unavailable — localStorage data already loaded, just log silently
+      console.warn('Lab sync: usando datos locales (servidor no disponible):', err.message);
+      setError(null); // Don't surface error to UI, localStorage has the data
     } finally {
       setLoading(false);
     }
@@ -51,32 +74,39 @@ export const LabProvider = ({ children }) => {
     fetchLabData();
   }, [fetchLabData]);
 
+  // ─── Update functions: localStorage FIRST, then try server ────────────────
+
   const updateSectorData = async (newSectorData) => {
+    // 1. Save to state + localStorage immediately (instant persistence)
     setSectorData(newSectorData);
+    lsSet(LS_KEYS.sector, newSectorData);
+    // 2. Try to sync to server (non-blocking, best-effort)
     try {
       await apiService.updateLabPreferences({ sectorAnalysis: newSectorData });
     } catch (err) {
-      console.error('Error saving sector analysis:', err);
-      throw err; // Re-throw so components can show error feedback
+      console.warn('Lab sync: sector guardado localmente, fallo en servidor:', err.message);
+      throw err; // Re-throw so SaveButton shows error state
     }
   };
 
   const updateCountryData = async (newCountryData) => {
     setCountryData(newCountryData);
+    lsSet(LS_KEYS.country, newCountryData);
     try {
       await apiService.updateLabPreferences({ countryAnalysis: newCountryData });
     } catch (err) {
-      console.error('Error saving country analysis:', err);
+      console.warn('Lab sync: country guardado localmente, fallo en servidor:', err.message);
       throw err;
     }
   };
 
   const updateChecklistHistory = async (newHistory) => {
     setChecklistHistory(newHistory);
+    lsSet(LS_KEYS.checklist, newHistory);
     try {
       await apiService.updateLabPreferences({ checklistHistory: newHistory });
     } catch (err) {
-      console.error('Error saving checklist history:', err);
+      console.warn('Lab sync: checklist guardado localmente, fallo en servidor:', err.message);
     }
   };
 

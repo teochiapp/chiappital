@@ -206,7 +206,7 @@ const Diversification = ({ openTrades, loading, error }) => {
       
       if (!symbol || portfolioPercentage === 0) return;
 
-      const symbolData = getSymbolData(symbol);
+      const symbolData = getSymbolData(trade);
       totalPortfolio += portfolioPercentage;
 
       // Por empresa (incluyendo ETFs para visualización completa de la cartera)
@@ -496,7 +496,7 @@ const Diversification = ({ openTrades, loading, error }) => {
       <GlobalStatsGrid>
         <StatCard $color={colors.trading.profit}>
           <StatValue>{diversificationData.totalPortfolio}%</StatValue>
-          <StatLabel>Total Asignado</StatLabel>
+          <StatLabel>Total de Cartera Invertido</StatLabel>
         </StatCard>
         <StatCard $color={colors.gray[600]}>
           <StatValue>{(100 - diversificationData.totalPortfolio).toFixed(1)}%</StatValue>

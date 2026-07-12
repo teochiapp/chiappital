@@ -1,76 +1,62 @@
 import React from 'react';
 import styled from 'styled-components';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { LayoutDashboard, BookOpen, LogOut, Wallet, Users, ArrowLeftRight, GraduationCap, FlaskConical } from 'lucide-react';
-import { useAccount } from '../../context/AccountContext';
-import { useStrapiAuth } from '../../hooks/useApiTrades';
-import AppLogo from './Logo';
+import { LayoutDashboard, Target, Dumbbell, Briefcase, Globe } from 'lucide-react';
+import AppLogo from '../../../components/common/Logo';
 
-const Header = () => {
+const PersonalHeader = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { accountType } = useAccount();
-  const { user, logout } = useStrapiAuth();
 
-  // No renderizar el header en login, selección de cuenta o en el Personal Hub
-  if (
-    location.pathname === '/login' || 
-    location.pathname === '/select-account' ||
-    location.pathname.startsWith('/personal')
-  ) {
+  if (!location.pathname.startsWith('/personal')) {
     return null;
   }
-
-  const handleLogoutClick = () => {
-    logout();
-    navigate('/login');
-  };
 
   return (
     <HeaderContainer>
       <HeaderBrand>
         <AppLogo size="32px" fontSize="1.5rem" />
-        <AccountBadge className={accountType}>
-          {accountType === 'propia' ? <Wallet size={14} /> : <Users size={14} />}
-          {accountType === 'propia' ? 'Cuenta Propia' : 'Cuenta Compartida'}
-        </AccountBadge>
+        <Badge>
+          <span>🌱</span>
+          Personal OS
+        </Badge>
       </HeaderBrand>
 
       <HeaderNav>
         <NavItem
-          $active={location.pathname === '/dashboard'}
-          onClick={() => navigate('/dashboard')}
+          $active={location.pathname === '/personal'}
+          onClick={() => navigate('/personal')}
         >
           <LayoutDashboard size={18} />
           Dashboard
         </NavItem>
         <NavItem
-          $active={location.pathname === '/trades'}
-          onClick={() => navigate('/trades')}
+          $active={location.pathname === '/personal/habits'}
+          onClick={() => navigate('/personal/habits')}
         >
-          <BookOpen size={18} />
-          Portafolio
+          <Dumbbell size={18} />
+          Hábitos
         </NavItem>
         <NavItem
-          $active={location.pathname === '/lab'}
-          onClick={() => navigate('/lab')}
+          $active={location.pathname === '/personal/goals'}
+          onClick={() => navigate('/personal/goals')}
         >
-          <FlaskConical size={18} />
-          Lab
+          <Target size={18} />
+          Objetivos
         </NavItem>
         <NavItem
-          $active={location.pathname === '/metodologia'}
-          onClick={() => navigate('/metodologia')}
+          $active={location.pathname === '/personal/languages'}
+          onClick={() => navigate('/personal/languages')}
         >
-          <GraduationCap size={18} />
-          Métodología
+          <Globe size={18} />
+          Idiomas
         </NavItem>
       </HeaderNav>
 
       <HeaderActions>
-        <SwitchButton onClick={() => navigate('/select-account')}>
-          <ArrowLeftRight size={18} />
-          Cambiar Cartera
+        <SwitchButton onClick={() => navigate('/dashboard')}>
+          <Briefcase size={18} />
+          Ir a Inversiones
         </SwitchButton>
       </HeaderActions>
     </HeaderContainer>
@@ -84,8 +70,8 @@ const HeaderContainer = styled.header`
   justify-content: space-between;
   align-items: center;
   padding: 1rem 2rem;
-  background-color: #1e293b;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  background-color: #0f172a;
+  border-bottom: 1px solid rgba(16, 185, 129, 0.1);
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
   color: white;
   position: sticky;
@@ -105,7 +91,7 @@ const HeaderBrand = styled.div`
   gap: 1rem;
 `;
 
-const AccountBadge = styled.div`
+const Badge = styled.div`
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -113,18 +99,9 @@ const AccountBadge = styled.div`
   border-radius: 20px;
   font-size: 0.85rem;
   font-weight: 600;
-
-  &.propia {
-    background: rgba(101, 29, 35, 0.15);
-    color: #A9333F;
-    border: 1px solid rgba(101, 29, 35, 0.2);
-  }
-
-  &.compartida {
-    background: rgba(16, 185, 129, 0.15);
-    color: #34d399;
-    border: 1px solid rgba(16, 185, 129, 0.2);
-  }
+  background: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.2);
 `;
 
 const HeaderNav = styled.nav`
@@ -147,8 +124,8 @@ const NavItem = styled.button`
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  background: ${props => props.$active ? 'rgba(255, 255, 255, 0.1)' : 'transparent'};
-  color: ${props => props.$active ? 'white' : '#94a3b8'};
+  background: ${props => props.$active ? 'rgba(16, 185, 129, 0.15)' : 'transparent'};
+  color: ${props => props.$active ? '#10b981' : '#94a3b8'};
   border: none;
   padding: 0.5rem 1rem;
   border-radius: 8px;
@@ -158,8 +135,8 @@ const NavItem = styled.button`
   transition: all 0.2s ease;
 
   &:hover {
-    background: rgba(255, 255, 255, 0.1);
-    color: white;
+    background: rgba(16, 185, 129, 0.1);
+    color: #10b981;
   }
 `;
 
@@ -187,4 +164,4 @@ const SwitchButton = styled.button`
   }
 `;
 
-export default Header;
+export default PersonalHeader;

@@ -29,6 +29,8 @@ function formatTrade(row) {
     strategy: row.strategy || null,
     emotions: row.emotions || null,
     notes: row.notes || null,
+    custom_country: row.custom_country || null,
+    custom_sector: row.custom_sector || null,
     status: row.status,
     result: row.result !== null ? parseFloat(row.result) : null,
     closed_at: row.closed_at || null,
@@ -70,6 +72,7 @@ router.post('/', async (req, res) => {
       exit_price = null, portfolio_percentage = null,
       stop_loss = null, take_profit = null,
       strategy = null, emotions = null, notes = null,
+      custom_country = null, custom_sector = null,
       status = 'open', result = null, closed_at = null,
     } = tradeData;
 
@@ -92,11 +95,11 @@ router.post('/', async (req, res) => {
     const [insertResult] = await db.execute(
       `INSERT INTO trades
         (user_id, account_type, symbol, type, entry_price, entry_price_ars, exit_price, portfolio_percentage,
-         stop_loss, take_profit, strategy, emotions, notes, status, result, closed_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+         stop_loss, take_profit, strategy, emotions, notes, custom_country, custom_sector, status, result, closed_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         req.user.id, account_type, symbol, type, entry_price, entry_price_ars, exit_price, portfolio_percentage,
-        stop_loss, take_profit, strategy, emotions, notes, status, result, closed_at
+        stop_loss, take_profit, strategy, emotions, notes, custom_country, custom_sector, status, result, closed_at
       ]
     );
 
@@ -145,7 +148,7 @@ router.put('/:id', async (req, res) => {
     // Construir SET dinámico solo con los campos que vienen
     const allowedFields = [
       'account_type', 'symbol', 'type', 'entry_price', 'exit_price', 'portfolio_percentage',
-      'stop_loss', 'take_profit', 'strategy', 'emotions', 'notes',
+      'stop_loss', 'take_profit', 'strategy', 'emotions', 'notes', 'custom_country', 'custom_sector',
       'status', 'result', 'closed_at'
     ];
 

@@ -258,11 +258,6 @@ const TradeStats = ({ stats: _globalStats, trades = [], openTrades: _openTrades 
   );
 
   const getTradeResultPercentage = (trade) => {
-    const storedResult = getTradeAttr(trade, 'result');
-    if (storedResult != null && !isNaN(storedResult)) {
-      return Number(storedResult);
-    }
-
     const entryPrice = parseFloat(getTradeAttr(trade, 'entry_price'));
     const exitPrice = parseFloat(getTradeAttr(trade, 'exit_price'));
     const type = getTradeAttr(trade, 'type');

@@ -15,7 +15,8 @@ export const COUNTRIES = {
 };
 
 export const SECTORS = {
-  TECHNOLOGY: 'Tecnología',
+  SOFTWARE: 'Software',
+  SEMICONDUCTORS: 'Semiconductores',
   HEALTHCARE: 'Salud',
   FINANCIAL: 'Financiero',
   ENERGY: 'Energía',
@@ -28,6 +29,7 @@ export const SECTORS = {
   TELECOMMUNICATIONS: 'Telecomunicaciones',
   CRYPTO: 'Criptomonedas',
   ETF: 'ETF',
+  BONDS: 'Bonos',
   OTHER: 'Otro'
 };
 
@@ -42,30 +44,37 @@ export const symbolMapping = {
   'VOO': { country: 'USA', sector: 'ETF', company: 'Vanguard S&P 500 ETF' },
   'TQQQ': { country: 'USA', sector: 'ETF', company: 'ProShares UltraPro QQQ' },
   'PSQ': { country: 'USA', sector: 'ETF', company: 'ProShares Short QQQ' },
+  'EWZ': { country: 'BRA', sector: 'ETF', company: 'iShares MSCI Brazil ETF' },
   
-  // 🇺🇸 Estados Unidos - Tecnología
-  'AAPL': { country: 'USA', sector: 'TECHNOLOGY', company: 'Apple Inc.' },
-  'GOOGL': { country: 'USA', sector: 'TECHNOLOGY', company: 'Alphabet Inc.' },
-  'GOOG': { country: 'USA', sector: 'TECHNOLOGY', company: 'Alphabet Inc.' },
-  'MSFT': { country: 'USA', sector: 'TECHNOLOGY', company: 'Microsoft Corp.' },
+  // 🇺🇸 Estados Unidos - Software y Semiconductores
+  'AAPL': { country: 'USA', sector: 'SOFTWARE', company: 'Apple Inc.' },
+  'GOOGL': { country: 'USA', sector: 'SOFTWARE', company: 'Alphabet Inc.' },
+  'GOOG': { country: 'USA', sector: 'SOFTWARE', company: 'Alphabet Inc.' },
+  'MSFT': { country: 'USA', sector: 'SOFTWARE', company: 'Microsoft Corp.' },
   'AMZN': { country: 'USA', sector: 'CONSUMER_DISCRETIONARY', company: 'Amazon.com Inc.' },
   'TSLA': { country: 'USA', sector: 'CONSUMER_DISCRETIONARY', company: 'Tesla Inc.' },
-  'META': { country: 'USA', sector: 'TECHNOLOGY', company: 'Meta Platforms Inc.' },
-  'NVDA': { country: 'USA', sector: 'TECHNOLOGY', company: 'NVIDIA Corp.' },
+  'META': { country: 'USA', sector: 'SOFTWARE', company: 'Meta Platforms Inc.' },
+  'NVDA': { country: 'USA', sector: 'SEMICONDUCTORS', company: 'NVIDIA Corp.' },
   'NFLX': { country: 'USA', sector: 'CONSUMER_DISCRETIONARY', company: 'Netflix Inc.' },
-  'ADBE': { country: 'USA', sector: 'TECHNOLOGY', company: 'Adobe Inc.' },
+  'ADBE': { country: 'USA', sector: 'SOFTWARE', company: 'Adobe Inc.' },
+  'TGT': { country: 'USA', sector: 'CONSUMER_DISCRETIONARY', company: 'Target Corporation' },
   
   // 🇺🇸 Estados Unidos - Financiero
   'JPM': { country: 'USA', sector: 'FINANCIAL', company: 'JPMorgan Chase & Co.' },
   'BAC': { country: 'USA', sector: 'FINANCIAL', company: 'Bank of America Corp.' },
   'WFC': { country: 'USA', sector: 'FINANCIAL', company: 'Wells Fargo & Co.' },
   'GS': { country: 'USA', sector: 'FINANCIAL', company: 'Goldman Sachs Group Inc.' },
+  'MA': { country: 'USA', sector: 'FINANCIAL', company: 'Mastercard Inc.' },
+  'BRKB': { country: 'USA', sector: 'FINANCIAL', company: 'Berkshire Hathaway Inc.' },
+  'BRK.B': { country: 'USA', sector: 'FINANCIAL', company: 'Berkshire Hathaway Inc.' },
+  'BKSH': { country: 'USA', sector: 'FINANCIAL', company: 'Berkshire Hathaway Inc.' },
   
   // 🇺🇸 Estados Unidos - Salud
   'JNJ': { country: 'USA', sector: 'HEALTHCARE', company: 'Johnson & Johnson' },
   'PFE': { country: 'USA', sector: 'HEALTHCARE', company: 'Pfizer Inc.' },
   'UNH': { country: 'USA', sector: 'HEALTHCARE', company: 'UnitedHealth Group Inc.' },
   'MRNA': { country: 'USA', sector: 'HEALTHCARE', company: 'Moderna Inc.' },
+  'HIMS': { country: 'USA', sector: 'HEALTHCARE', company: 'Hims & Hers Health Inc.' },
   
   // 🇺🇸 Estados Unidos - Energía
   'XOM': { country: 'USA', sector: 'ENERGY', company: 'Exxon Mobil Corp.' },
@@ -85,6 +94,7 @@ export const symbolMapping = {
   
   // 🇦🇷 Argentina (BYMA - Bolsa de Buenos Aires)
   'AGRO.BA': { country: 'ARG', sector: 'CONSUMER_STAPLES', company: 'Adecoagro S.A.' },
+  'AGROAR': { country: 'ARG', sector: 'CONSUMER_STAPLES', company: 'Adecoagro S.A.' },
   'ALUA.BA': { country: 'ARG', sector: 'INDUSTRIAL', company: 'Aluar Aluminio Argentino S.A.I.C.' },
   'AUSO.BA': { country: 'ARG', sector: 'INDUSTRIAL', company: 'Autopistas del Sol S.A.' },
   'BBAR.BA': { country: 'ARG', sector: 'FINANCIAL', company: 'BBVA Argentina S.A.' },
@@ -110,7 +120,9 @@ export const symbolMapping = {
   'MERVAL.BA': { country: 'ARG', sector: 'INDEX', company: 'MERVAL Index' },
   'METR.BA': { country: 'ARG', sector: 'UTILITIES', company: 'Metrogas S.A.' },
   'MERV.BA': { country: 'ARG', sector: 'INDEX', company: 'S&P MERVAL Index' },
-  'MIRG.BA': { country: 'ARG', sector: 'TECHNOLOGY', company: 'Mirgor S.A.C.I.F.I.A.' },
+  'MIRG.BA': { country: 'ARG', sector: 'SOFTWARE', company: 'Mirgor S.A.C.I.F.I.A.' },
+  'GLOB': { country: 'ARG', sector: 'SOFTWARE', company: 'Globant S.A.' },
+  'MELI': { country: 'ARG', sector: 'CONSUMER_DISCRETIONARY', company: 'MercadoLibre Inc.' },
   'MOLA.BA': { country: 'ARG', sector: 'CONSUMER_STAPLES', company: 'Molinos Agro S.A.' },
   'MOLI.BA': { country: 'ARG', sector: 'CONSUMER_STAPLES', company: 'Molinos Río de la Plata S.A.' },
   'OEST.BA': { country: 'ARG', sector: 'INDUSTRIAL', company: 'Grupo Concesionario del Oeste S.A.' },
@@ -127,23 +139,23 @@ export const symbolMapping = {
   'VALO.BA': { country: 'ARG', sector: 'FINANCIAL', company: 'Grupo Financiero Valores S.A.' },
   'YPF.BA': { country: 'ARG', sector: 'ENERGY', company: 'YPF S.A.' },
   
-  // 🇧🇷 Brasil
+  // 🇧🇷 Brasil / Latam
   'VALE': { country: 'BRA', sector: 'MATERIALS', company: 'Vale S.A.' },
   'PETR4': { country: 'BRA', sector: 'ENERGY', company: 'Petrobras' },
   'ITUB': { country: 'BRA', sector: 'FINANCIAL', company: 'Itaú Unibanco' },
   'BBDC4': { country: 'BRA', sector: 'FINANCIAL', company: 'Bradesco' },
   'ABEV': { country: 'BRA', sector: 'CONSUMER_STAPLES', company: 'Ambev S.A.' },
+  'NU': { country: 'BRA', sector: 'FINANCIAL', company: 'Nu Holdings Ltd.' },
   
   // 🇨🇳 China
   'BABA': { country: 'CHN', sector: 'CONSUMER_DISCRETIONARY', company: 'Alibaba Group' },
-  'JD': { country: 'CHN', sector: 'CONSUMER_DISCRETIONARY', company: 'JD.com Inc.' },
-  'TCEHY': { country: 'CHN', sector: 'TECHNOLOGY', company: 'Tencent Holdings' },
-  'NIO': { country: 'CHN', sector: 'CONSUMER_DISCRETIONARY', company: 'NIO Inc.' },
-  'BIDU': { country: 'CHN', sector: 'TECHNOLOGY', company: 'Baidu Inc.' },
+  'JD': { country: 'CHN', sector: 'CONSUMER_DISCRETIONARY', company: 'JD.com' },
+  'TCEHY': { country: 'CHN', sector: 'SOFTWARE', company: 'Tencent Holdings' },
+  'BIDU': { country: 'CHN', sector: 'SOFTWARE', company: 'Baidu Inc.' },
   
   // 🇪🇺 Europa
-  'ASML': { country: 'EUR', sector: 'TECHNOLOGY', company: 'ASML Holding N.V.' },
-  'SAP': { country: 'EUR', sector: 'TECHNOLOGY', company: 'SAP SE' },
+  'ASML': { country: 'EUR', sector: 'SEMICONDUCTORS', company: 'ASML Holding N.V.' },
+  'SAP': { country: 'EUR', sector: 'SOFTWARE', company: 'SAP SE' },
   'NESN': { country: 'EUR', sector: 'CONSUMER_STAPLES', company: 'Nestlé S.A.' },
   'LVMH': { country: 'EUR', sector: 'CONSUMER_DISCRETIONARY', company: 'LVMH' },
   
@@ -154,18 +166,25 @@ export const symbolMapping = {
   'SOL': { country: 'USA', sector: 'CRYPTO', company: 'Solana' },
 };
 
-// Función para obtener datos de un símbolo
-export const getSymbolData = (symbol) => {
+// Función para obtener datos de un símbolo o trade completo
+export const getSymbolData = (symbolOrTrade) => {
+  // Si pasaron un string, usarlo. Si pasaron un objeto trade, sacar el símbolo.
+  const symbol = typeof symbolOrTrade === 'string' ? symbolOrTrade : symbolOrTrade?.symbol || symbolOrTrade?.attributes?.symbol;
+  
   const data = symbolMapping[symbol?.toUpperCase()];
   
+  // Si pasaron un trade, intentar usar su país/sector personalizado primero si no hay datos oficiales
+  const customCountry = typeof symbolOrTrade === 'object' ? (symbolOrTrade?.custom_country || symbolOrTrade?.attributes?.custom_country) : null;
+  const customSector = typeof symbolOrTrade === 'object' ? (symbolOrTrade?.custom_sector || symbolOrTrade?.attributes?.custom_sector) : null;
+
   if (!data) {
-    // Valores por defecto para símbolos no reconocidos
+    // Si no hay mapeo, y tenemos data custom, usarla
     return {
-      country: 'OTHER',
-      sector: 'OTHER',
+      country: customCountry || 'OTHER',
+      sector: customSector || 'OTHER',
       company: symbol || 'Desconocido',
-      countryName: 'Otro',
-      sectorName: 'Otro'
+      countryName: COUNTRIES[customCountry] || 'Otro',
+      sectorName: SECTORS[customSector] || 'Otro'
     };
   }
   

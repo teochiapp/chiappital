@@ -1,16 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
-import { TrendingUp, PlusCircle, History, PieChart, Search } from 'lucide-react';
+import { TrendingUp, PlusCircle, History, PieChart, Search, DownloadCloud, RefreshCw } from 'lucide-react';
 import TradeForm from './TradeForm';
 import ClosedTradesHistory from './ClosedTradesHistory';
 import TradeStats from './TradeStats';
 import ActivePositions from './ActivePositions';
-import Diversification from './Diversification';
 // import TradesDebug from '../Debug/TradesDebug'; // Removido temporalmente
 import Logo from '../common/Logo';
 import { useStrapiTrades } from '../../hooks/useApiTrades';
+import { useAccount } from '../../context/AccountContext';
 import { colors, componentColors, getTradingColor, withOpacity } from '../../styles/colors';
 
 const PageWrapper = styled.div`
@@ -88,8 +88,32 @@ const TabContent = styled.div`
   min-height: 400px;
 `;
 
+const HeaderActions = styled.div`
+  display: flex;
+  justify-content: flex-end;
+  margin-top: -60px;
+  margin-bottom: 40px;
+`;
+
+const ImportButton = styled.button`
+  background: ${colors.primary};
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Unbounded', sans-serif;
+  &:hover {
+    opacity: 0.9;
+  }
+`;
+
 const TradeLogs = () => {
   const navigate = useNavigate();
+  const { accountType } = useAccount();
   const [activeTab, setActiveTab] = useState('stats');
   const { trades, openTrades, closedTrades, stats, loading, error, createTrade, updateTrade, deleteTrade, closeTrade, refreshTrades } = useStrapiTrades();
 
@@ -131,6 +155,106 @@ const TradeLogs = () => {
     }
   };
 
+  const fileInputRef = useRef(null);
+
+
+  const handleFileUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      try {
+        const content = event.target.result;
+        const lines = content.split('\n');
+        const openTrades = [];
+
+        for (let i = 0; i < lines.length; i++) {
+          const line = lines[i].trim();
+          if (!line || line.startsWith(',,') || line.startsWith('Disponible') || line.startsWith('Liquidar') || line.startsWith('Subtotal') || line.startsWith('Especie') || line.startsWith('Fecha') || line.startsWith('Patrimonio') || line.startsWith('Tenencia') || line.startsWith('Cedears') || line.startsWith('Otros') || line.startsWith('DOLARUSA')) {
+            continue;
+          }
+          
+          let cols = [];
+          let inQuotes = false;
+          let current = '';
+          for (let char of line) {
+            if (char === '"') inQuotes = !inQuotes;
+            else if (char === ',' && !inQuotes) { cols.push(current); current = ''; }
+            else current += char;
+          }
+          cols.push(current);
+          
+          if (cols.length < 6) continue;
+
+          const symbolFull = cols[0];
+          if (!symbolFull.includes(' - ')) continue;
+          
+          const symbol = symbolFull.split(' - ')[0];
+          const qtyStr = cols[2];
+          const pctStr = cols[4];
+          const pppStr = cols[5]; 
+          
+          const qty = parseFloat(qtyStr.replace(/\./g, '').replace(',', '.'));
+          const portfolioPercentage = parseFloat(pctStr.replace(/"/g, '').replace(/\./g, '').replace(',', '.'));
+          const ppp = parseFloat(pppStr.replace(/"/g, '').replace(/\./g, '').replace(',', '.'));
+          
+          if (isNaN(ppp)) continue;
+
+          openTrades.push({
+            symbol: symbol,
+            type: 'buy',
+            status: 'open',
+            entry_price: ppp,
+            portfolio_percentage: isNaN(portfolioPercentage) ? null : portfolioPercentage,
+            createdAt: new Date().toISOString(),
+            notes: `Qty: ${qty} (Portafolio IEB)`
+          });
+        }
+
+        if (openTrades.length === 0) {
+          alert('No se encontraron trades válidos en el archivo CSV.');
+          return;
+        }
+
+        if (window.confirm(`¿Seguro que querés importar ${openTrades.length} activos abiertos de tu portafolio IEB a esta cuenta?`)) {
+          const token = localStorage.getItem('st_token');
+          if (!token) throw new Error('No hay sesión iniciada');
+          
+          let count = 0;
+          for (const t of openTrades) {
+            await fetch('https://apichiappital.surcodes.com/api/trades', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+              body: JSON.stringify({ data: {
+                 symbol: t.symbol,
+                 type: t.type,
+                 entry_price: t.entry_price,
+                 portfolio_percentage: t.portfolio_percentage,
+                 notes: t.notes,
+                 account_type: accountType,
+                 created_at: t.createdAt
+              }})
+            });
+            count++;
+          }
+          alert('¡Portafolio importado con éxito!');
+          refreshTrades();
+        }
+      } catch (err) {
+        console.error(err);
+        alert('Error importando: ' + err.message);
+      }
+      
+      // Limpiar el input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    };
+    
+    reader.readAsText(file);
+  };
+
   return (
     <PageWrapper>
       <PageContainer>
@@ -151,6 +275,21 @@ const TradeLogs = () => {
           </PageTitle>
         </motion.div>
       </PageHeader>
+
+      <HeaderActions>
+
+        <input 
+          type="file" 
+          accept=".csv" 
+          ref={fileInputRef} 
+          style={{ display: 'none' }} 
+          onChange={handleFileUpload} 
+        />
+        <ImportButton onClick={() => fileInputRef.current?.click()}>
+          <DownloadCloud size={18} />
+          Importar Portafolio IEB
+        </ImportButton>
+      </HeaderActions>
 
       <TabContainer>
         <Tab 
@@ -181,20 +320,6 @@ const TradeLogs = () => {
           <History size={20} />
           Historial
         </Tab>
-        <Tab 
-          $active={activeTab === 'diversification'} 
-          onClick={() => setActiveTab('diversification')}
-        >
-          <PieChart size={20} />
-          Diversificación
-        </Tab>
-        <Tab 
-          $active={activeTab === 'screener'} 
-          onClick={() => setActiveTab('screener')}
-        >
-          <Search size={20} />
-          Screener
-        </Tab>
       </TabContainer>
 
       <TabContent>
@@ -222,32 +347,6 @@ const TradeLogs = () => {
             />
           ) : activeTab === 'form' ? (
             <TradeForm onTradeAdded={handleTradeAdded} />
-          ) : activeTab === 'diversification' ? (
-            <Diversification 
-              openTrades={openTrades}
-              loading={loading}
-              error={error}
-            />
-          ) : activeTab === 'screener' ? (
-            <div style={{ 
-              padding: '3rem', 
-              textAlign: 'center', 
-              color: '#7f8c8d',
-              fontFamily: 'Unbounded, sans-serif'
-            }}>
-              <Search size={64} color="#7f8c8d" style={{ marginBottom: '1rem' }} />
-              <h3 style={{ 
-                fontSize: '1.5rem', 
-                fontWeight: 600, 
-                color: '#2c3e50', 
-                margin: '0 0 0.5rem 0' 
-              }}>
-                Screener de Acciones
-              </h3>
-              <p style={{ fontSize: '1rem', margin: 0 }}>
-                Próximamente: Herramienta para analizar y filtrar acciones
-              </p>
-            </div>
           ) : (
             <ClosedTradesHistory 
               closedTrades={closedTrades}

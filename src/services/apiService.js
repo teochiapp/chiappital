@@ -95,12 +95,17 @@ class ApiService {
   }
 
   async familyLogin(answer) {
+    console.log('🚀 Iniciando petición familyLogin...');
+    console.log('🌍 Base URL configurada:', this.baseURL);
+    console.log('🔗 URL completa de la petición:', `${this.baseURL}/auth/family`);
+
     try {
       const response = await fetch(`${this.baseURL}/auth/family`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ answer }),
       });
+
 
       const data = await response.json();
 
@@ -115,7 +120,10 @@ class ApiService {
         error: data.error?.message || data.message || 'Respuesta incorrecta'
       };
     } catch (error) {
-      console.error('Error en family login:', error);
+      console.error('❌ Error en petición familyLogin:', error.message || error);
+      console.log('ℹ️ NOTA: Si el error es TypeError: Failed to fetch y en consola ves ERR_CERT_COMMON_NAME_INVALID, significa que el certificado SSL no es válido para ese dominio (posiblemente al usar un sub-subdominio en Hostinger sin un certificado SSL configurado para el mismo).');
+      console.log('URL intentada:', `${this.baseURL}/auth/family`);
+      console.dir(error); // Muestra las propiedades del error en más detalle
       return { success: false, error: 'Error de conexión con el servidor' };
     }
   }
@@ -315,6 +323,28 @@ class ApiService {
       body: JSON.stringify({ account_type: accountType, total_usd: totalUsd })
     });
     if (!response.ok) throw new Error('Error updating balance');
+    return response.json();
+  }
+
+  // ─── LAB PREFERENCES ──────────────────────────────────────────────────────
+
+  async getLabPreferences() {
+    if (!this.token) throw new Error('Usuario no autenticado.');
+    const response = await fetch(`${this.baseURL}/lab/preferences`, {
+      headers: this.getHeaders(),
+    });
+    if (!response.ok) throw new Error('Error fetching lab preferences');
+    return response.json();
+  }
+
+  async updateLabPreferences(preferences) {
+    if (!this.token) throw new Error('Usuario no autenticado.');
+    const response = await fetch(`${this.baseURL}/lab/preferences`, {
+      method: 'PUT',
+      headers: this.getHeaders(),
+      body: JSON.stringify(preferences)
+    });
+    if (!response.ok) throw new Error('Error updating lab preferences');
     return response.json();
   }
 }
