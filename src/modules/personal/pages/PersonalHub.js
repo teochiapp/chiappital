@@ -17,12 +17,16 @@ const PersonalHub = () => {
 
   const today = new Date().toISOString().split('T')[0];
 
+  const todayDayOfWeek = new Date().getDay();
+
   const todayHabits = useMemo(() => {
-    return habits.map(h => ({
-      ...h,
-      completedToday: (h.completions || []).includes(today),
-    }));
-  }, [habits, today]);
+    return habits
+      .filter(h => (h.days_of_week || [0,1,2,3,4,5,6]).includes(todayDayOfWeek))
+      .map(h => ({
+        ...h,
+        completedToday: (h.completions || []).includes(today),
+      }));
+  }, [habits, today, todayDayOfWeek]);
 
   const completedToday = todayHabits.filter(h => h.completedToday).length;
   const totalHabits = todayHabits.length;
@@ -63,8 +67,13 @@ const PersonalHub = () => {
       const d = new Date();
       d.setDate(d.getDate() - (6 - i));
       const dateStr = d.toISOString().split('T')[0];
-      const completedCount = habits.filter(h => (h.completions || []).includes(dateStr)).length;
-      return { dateStr, completedCount, dayLabel: d.toLocaleDateString('es', { weekday: 'short' }).slice(0, 2) };
+      const dayOfWeek = d.getDay();
+      
+      const scheduledHabits = habits.filter(h => (h.days_of_week || [0,1,2,3,4,5,6]).includes(dayOfWeek));
+      const scheduledCount = scheduledHabits.length;
+      const completedCount = scheduledHabits.filter(h => (h.completions || []).includes(dateStr)).length;
+      
+      return { dateStr, completedCount, scheduledCount, dayLabel: d.toLocaleDateString('es', { weekday: 'short' }).slice(0, 2) };
     });
   }, [habits]);
 
@@ -172,7 +181,7 @@ const PersonalHub = () => {
             </EmptyState>
           ) : (
             <GoalList>
-              {activeGoals.slice(0, 4).map(goal => (
+              {activeGoals.map(goal => (
                 <GoalItem key={goal.id} onClick={() => navigate('/personal/goals')}>
                   <GoalTop>
                     <GoalEmoji>{getCategoryEmoji(goal.category)}</GoalEmoji>
@@ -199,7 +208,7 @@ const PersonalHub = () => {
         </PanelHeader>
         <ActivityGrid>
           {last7Days.map((day, i) => {
-            const pct = totalHabits > 0 ? day.completedCount / totalHabits : 0;
+            const pct = day.scheduledCount > 0 ? day.completedCount / day.scheduledCount : 0;
             return (
               <DayColumn key={i}>
                 <DayBar>
@@ -215,38 +224,38 @@ const PersonalHub = () => {
       {/* Módulos disponibles */}
       <ModuleGrid>
         <ModuleCard onClick={() => navigate('/personal/habits')}>
-          <ModuleIcon color={p.primaryLight}><CheckCircle2 size={28} /></ModuleIcon>
+          <ModuleIcon color={p.secondary}><CheckCircle2 size={28} /></ModuleIcon>
           <ModuleName>Hábitos</ModuleName>
           <ModuleDesc>Tracker diario, rachas y calendario</ModuleDesc>
           <ModuleArrow><ArrowRight size={16} /></ModuleArrow>
         </ModuleCard>
         <ModuleCard onClick={() => navigate('/personal/goals')}>
-          <ModuleIcon color="#fbbf24"><Target size={28} /></ModuleIcon>
+          <ModuleIcon color="#f59e0b"><Target size={28} /></ModuleIcon>
           <ModuleName>Objetivos</ModuleName>
           <ModuleDesc>OKR personal, categorías y progreso</ModuleDesc>
           <ModuleArrow><ArrowRight size={16} /></ModuleArrow>
         </ModuleCard>
-        <ModuleCard $disabled>
-          <ModuleIcon color="#64748b"><Dumbbell size={28} /></ModuleIcon>
+        <ModuleCard onClick={() => navigate('/personal/fitness')}>
+          <ModuleIcon color="#60a5fa"><Dumbbell size={28} /></ModuleIcon>
           <ModuleName>Fitness</ModuleName>
-          <ModuleDesc>Próximamente</ModuleDesc>
-          <ComingSoonBadge>Pronto</ComingSoonBadge>
+          <ModuleDesc>Registro de rutinas y PRs</ModuleDesc>
+          <ModuleArrow><ArrowRight size={16} /></ModuleArrow>
+        </ModuleCard>
+        <ModuleCard onClick={() => navigate('/personal/languages')}>
+          <ModuleIcon color="#4ADE80"><Globe size={28} /></ModuleIcon>
+          <ModuleName>Idiomas</ModuleName>
+          <ModuleDesc>Práctica y vocabulario SRS</ModuleDesc>
+          <ModuleArrow><ArrowRight size={16} /></ModuleArrow>
+        </ModuleCard>
+        <ModuleCard onClick={() => navigate('/personal/journal')}>
+          <ModuleIcon color="#64748b"><BookOpen size={28} /></ModuleIcon>
+          <ModuleName>Daily Journal</ModuleName>
+          <ModuleDesc>Reflexiones, aprendizajes y notas diarias</ModuleDesc>
+          <ModuleArrow><ArrowRight size={16} /></ModuleArrow>
         </ModuleCard>
         <ModuleCard $disabled>
           <ModuleIcon color="#64748b"><BookOpen size={28} /></ModuleIcon>
           <ModuleName>Libros</ModuleName>
-          <ModuleDesc>Próximamente</ModuleDesc>
-          <ComingSoonBadge>Pronto</ComingSoonBadge>
-        </ModuleCard>
-        <ModuleCard $disabled>
-          <ModuleIcon color="#64748b"><Globe size={28} /></ModuleIcon>
-          <ModuleName>Idiomas</ModuleName>
-          <ModuleDesc>Próximamente</ModuleDesc>
-          <ComingSoonBadge>Pronto</ComingSoonBadge>
-        </ModuleCard>
-        <ModuleCard $disabled>
-          <ModuleIcon color="#64748b"><Clock size={28} /></ModuleIcon>
-          <ModuleName>Tareas</ModuleName>
           <ModuleDesc>Próximamente</ModuleDesc>
           <ComingSoonBadge>Pronto</ComingSoonBadge>
         </ModuleCard>

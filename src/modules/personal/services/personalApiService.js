@@ -48,6 +48,16 @@ const personalApiService = {
   createVocabulary: (wordData) => request('POST', '/vocabulary', wordData),
   reviewVocabulary: (id, quality) => request('PUT', `/vocabulary/${id}/review`, { quality }),
   deleteVocabulary: (id) => request('DELETE', `/vocabulary/${id}`),
+
+  // Fitness
+  getFitness: () => request('GET', '/fitness'),
+  updateFitnessPr: (exercise, record_value) => request('PUT', '/fitness/pr', { exercise, record_value }),
+  logWorkout: () => request('POST', '/fitness/workout'),
+
+  // Journal
+  getJournals: () => request('GET', '/journals'),
+  createJournal: (journalData) => request('POST', '/journals', journalData),
+  updateJournal: (id, journalData) => request('PUT', `/journals/${id}`, journalData),
 };
 
 export default personalApiService;

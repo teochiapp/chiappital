@@ -2,11 +2,12 @@ import React, { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
-import { TrendingUp, PlusCircle, History, PieChart, Search, DownloadCloud, RefreshCw } from 'lucide-react';
+import { TrendingUp, PlusCircle, History, PieChart, Search, DownloadCloud, RefreshCw, CalendarDays } from 'lucide-react';
 import TradeForm from './TradeForm';
 import ClosedTradesHistory from './ClosedTradesHistory';
 import TradeStats from './TradeStats';
 import ActivePositions from './ActivePositions';
+import MonthlyMovements from './MonthlyMovements';
 // import TradesDebug from '../Debug/TradesDebug'; // Removido temporalmente
 import Logo from '../common/Logo';
 import { useStrapiTrades } from '../../hooks/useApiTrades';
@@ -320,6 +321,13 @@ const TradeLogs = () => {
           <History size={20} />
           Historial
         </Tab>
+        <Tab 
+          $active={activeTab === 'movements'} 
+          onClick={() => setActiveTab('movements')}
+        >
+          <CalendarDays size={20} />
+          Movimientos
+        </Tab>
       </TabContainer>
 
       <TabContent>
@@ -347,6 +355,12 @@ const TradeLogs = () => {
             />
           ) : activeTab === 'form' ? (
             <TradeForm onTradeAdded={handleTradeAdded} />
+          ) : activeTab === 'movements' ? (
+            <MonthlyMovements
+              trades={trades}
+              loading={loading}
+              error={error}
+            />
           ) : (
             <ClosedTradesHistory 
               closedTrades={closedTrades}

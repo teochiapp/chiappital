@@ -94,12 +94,12 @@ router.post('/habits', async (req, res) => {
   try {
     const db = getPool();
     const userId = req.user.id;
-    const { name, description, frequency, color, icon } = req.body;
+    const { name, description, frequency, color, icon, days_of_week } = req.body;
     if (!name) return res.status(400).json({ error: { message: 'name requerido.' } });
 
     const [result] = await db.execute(
-      'INSERT INTO habits (user_id, name, description, frequency, color, icon) VALUES (?, ?, ?, ?, ?, ?)',
-      [userId, name, description || null, frequency || 'daily', color || '#52B788', icon || null]
+      'INSERT INTO habits (user_id, name, description, frequency, days_of_week, color, icon) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      [userId, name, description || null, frequency || 'daily', days_of_week ? JSON.stringify(days_of_week) : null, color || '#52B788', icon || null]
     );
     const [rows] = await db.execute('SELECT * FROM habits WHERE id = ?', [result.insertId]);
     res.status(201).json({ habit: { ...rows[0], completions: [] } });
@@ -114,12 +114,22 @@ router.put('/habits/:id', async (req, res) => {
   try {
     const db = getPool();
     const userId = req.user.id;
-    const { name, description, frequency, color, icon, active } = req.body;
+    const { name, description, frequency, color, icon, active, days_of_week } = req.body;
     await db.execute(
       `UPDATE habits SET name=COALESCE(?,name), description=COALESCE(?,description),
-       frequency=COALESCE(?,frequency), color=COALESCE(?,color), icon=COALESCE(?,icon),
+       frequency=COALESCE(?,frequency), days_of_week=COALESCE(?,days_of_week), color=COALESCE(?,color), icon=COALESCE(?,icon),
        active=COALESCE(?,active) WHERE id=? AND user_id=?`,
-      [name, description, frequency, color, icon, active !== undefined ? (active ? 1 : 0) : null, req.params.id, userId]
+      [
+        name !== undefined ? name : null,
+        description !== undefined ? description : null,
+        frequency !== undefined ? frequency : null,
+        days_of_week !== undefined ? (days_of_week ? JSON.stringify(days_of_week) : null) : null,
+        color !== undefined ? color : null,
+        icon !== undefined ? icon : null,
+        active !== undefined ? (active ? 1 : 0) : null,
+        req.params.id,
+        userId
+      ]
     );
     res.json({ success: true });
   } catch (error) {
@@ -219,7 +229,16 @@ router.put('/goals/:id', async (req, res) => {
         category=COALESCE(?,category), progress=COALESCE(?,progress),
         deadline=COALESCE(?,deadline), status=COALESCE(?,status)
        WHERE id=? AND user_id=?`,
-      [title, description, category, progress, deadline, status, req.params.id, req.user.id]
+      [
+        title !== undefined ? title : null,
+        description !== undefined ? description : null,
+        category !== undefined ? category : null,
+        progress !== undefined ? progress : null,
+        deadline !== undefined ? deadline : null,
+        status !== undefined ? status : null,
+        req.params.id,
+        req.user.id
+      ]
     );
     const [rows] = await db.execute('SELECT * FROM personal_goals WHERE id = ?', [req.params.id]);
     res.json({ goal: rows[0] });
@@ -344,6 +363,81 @@ router.delete('/vocabulary/:id', async (req, res) => {
     res.json({ success: true });
   } catch (error) {
     console.error('Error eliminando vocabulario:', error);
+    res.status(500).json({ error: { message: 'Error interno del servidor.' } });
+  }
+});
+// ─── Fitness ──────────────────────────────────────────────────────────────────
+
+// GET /api/personal/fitness
+router.get('/fitness', async (req, res) => {
+  try {
+    const db = getPool();
+    const userId = req.user.id;
+    
+    const [prs] = await db.execute(
+      'SELECT id, exercise, record_value, record_date FROM personal_records WHERE user_id = ?',
+      [userId]
+    );
+
+    const [workouts] = await db.execute(
+      "SELECT id, date FROM workouts WHERE user_id = ? AND type = 'Fitness' AND date >= DATE_SUB(CURDATE(), INTERVAL WEEKDAY(CURDATE()) DAY)",
+      [userId]
+    );
+    
+    res.json({ prs, weekly_workouts: workouts.length });
+  } catch (error) {
+    console.error('Error obteniendo fitness:', error);
+    res.status(500).json({ error: { message: 'Error interno del servidor.' } });
+  }
+});
+
+// POST /api/personal/fitness/workout
+router.post('/fitness/workout', async (req, res) => {
+  try {
+    const db = getPool();
+    const userId = req.user.id;
+    const today = new Date().toISOString().split('T')[0];
+    
+    const [existing] = await db.execute(
+      "SELECT id FROM workouts WHERE user_id = ? AND type = 'Fitness' AND date = ?",
+      [userId, today]
+    );
+    if (existing.length === 0) {
+      await db.execute(
+        "INSERT INTO workouts (user_id, type, date) VALUES (?, 'Fitness', ?)",
+        [userId, today]
+      );
+    }
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error logging workout:', error);
+    res.status(500).json({ error: { message: 'Error interno del servidor.' } });
+  }
+});
+
+// PUT /api/personal/fitness/pr
+router.put('/fitness/pr', async (req, res) => {
+  try {
+    const db = getPool();
+    const userId = req.user.id;
+    const { exercise, record_value } = req.body;
+    
+    if (!exercise || !record_value) {
+      return res.status(400).json({ error: { message: 'exercise y record_value requeridos.' } });
+    }
+    
+    const today = new Date().toISOString().split('T')[0];
+    
+    await db.execute(
+      `INSERT INTO personal_records (user_id, exercise, record_value, record_date) 
+       VALUES (?, ?, ?, ?)
+       ON DUPLICATE KEY UPDATE record_value = VALUES(record_value), record_date = VALUES(record_date)`,
+      [userId, exercise, record_value, today]
+    );
+    
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error updating PR:', error);
     res.status(500).json({ error: { message: 'Error interno del servidor.' } });
   }
 });

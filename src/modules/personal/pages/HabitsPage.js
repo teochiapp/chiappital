@@ -11,21 +11,44 @@ import { colors } from '../../../styles/colors';
 const p = colors.personal;
 
 const HABIT_COLORS = ['#52B788', '#60a5fa', '#f472b6', '#fb923c', '#a78bfa', '#fbbf24', '#f43f5e', '#34d399'];
+const WEEKDAYS = [
+  { val: 1, label: 'L' },
+  { val: 2, label: 'M' },
+  { val: 3, label: 'X' },
+  { val: 4, label: 'J' },
+  { val: 5, label: 'V' },
+  { val: 6, label: 'S' },
+  { val: 0, label: 'D' },
+];
 
 const HabitsPage = () => {
   const { habits, loading, createHabit, updateHabit, deleteHabit, toggleHabit } = usePersonalHub();
   const [showForm, setShowForm] = useState(false);
   const [editingHabit, setEditingHabit] = useState(null);
-  const [formData, setFormData] = useState({ name: '', description: '', color: '#52B788', frequency: 'daily' });
+  const [formData, setFormData] = useState({ name: '', description: '', color: '#52B788', frequency: 'daily', days_of_week: [0,1,2,3,4,5,6] });
   const [calendarOffset, setCalendarOffset] = useState(0); // months back
 
   const today = new Date().toISOString().split('T')[0];
+
+  const toggleDay = (val) => {
+    setFormData(prev => {
+      const arr = prev.days_of_week || [];
+      if (arr.includes(val)) return { ...prev, days_of_week: arr.filter(d => d !== val) };
+      return { ...prev, days_of_week: [...arr, val] };
+    });
+  };
 
   // Calcular racha para un hábito
   const getStreak = (habit) => {
     let streak = 0;
     const d = new Date();
+    const days = habit.days_of_week || [0,1,2,3,4,5,6];
+    
     while (true) {
+      if (!days.includes(d.getDay())) {
+        d.setDate(d.getDate() - 1);
+        continue;
+      }
       const ds = d.toISOString().split('T')[0];
       if ((habit.completions || []).includes(ds)) {
         streak++;
@@ -44,12 +67,17 @@ const HabitsPage = () => {
   // Calcular porcentaje de los últimos 30 días
   const getCompletionRate = (habit) => {
     let completed = 0;
+    let scheduled = 0;
+    const days = habit.days_of_week || [0,1,2,3,4,5,6];
     for (let i = 0; i < 30; i++) {
       const d = new Date();
       d.setDate(d.getDate() - i);
-      if ((habit.completions || []).includes(d.toISOString().split('T')[0])) completed++;
+      if (days.includes(d.getDay())) {
+        scheduled++;
+        if ((habit.completions || []).includes(d.toISOString().split('T')[0])) completed++;
+      }
     }
-    return Math.round((completed / 30) * 100);
+    return scheduled === 0 ? 0 : Math.round((completed / scheduled) * 100);
   };
 
   // Generar días del mes actual (o pasados según offset)
@@ -81,12 +109,18 @@ const HabitsPage = () => {
     }
     setShowForm(false);
     setEditingHabit(null);
-    setFormData({ name: '', description: '', color: '#52B788', frequency: 'daily' });
+    setFormData({ name: '', description: '', color: '#52B788', frequency: 'daily', days_of_week: [0,1,2,3,4,5,6] });
   };
 
   const handleEdit = (habit) => {
     setEditingHabit(habit);
-    setFormData({ name: habit.name, description: habit.description || '', color: habit.color || '#52B788', frequency: habit.frequency || 'daily' });
+    setFormData({ 
+      name: habit.name, 
+      description: habit.description || '', 
+      color: habit.color || '#52B788', 
+      frequency: habit.frequency || 'daily',
+      days_of_week: habit.days_of_week || [0,1,2,3,4,5,6]
+    });
     setShowForm(true);
   };
 
@@ -109,7 +143,7 @@ const HabitsPage = () => {
           <PageTitle>Hábitos</PageTitle>
           <PageSubtitle>Construye tu mejor versión, un día a la vez</PageSubtitle>
         </div>
-        <AddButton onClick={() => { setEditingHabit(null); setFormData({ name: '', description: '', color: '#52B788', frequency: 'daily' }); setShowForm(true); }}>
+        <AddButton onClick={() => { setEditingHabit(null); setFormData({ name: '', description: '', color: '#52B788', frequency: 'daily', days_of_week: [0,1,2,3,4,5,6] }); setShowForm(true); }}>
           <Plus size={18} /> Nuevo hábito
         </AddButton>
       </TopBar>
@@ -143,6 +177,21 @@ const HabitsPage = () => {
                 />
               </FormGroup>
               <FormGroup>
+                <Label>Días de la semana</Label>
+                <DaysRow>
+                  {WEEKDAYS.map(d => (
+                    <DaySwatch
+                      key={d.val}
+                      type="button"
+                      $selected={(formData.days_of_week || []).includes(d.val)}
+                      onClick={() => toggleDay(d.val)}
+                    >
+                      {d.label}
+                    </DaySwatch>
+                  ))}
+                </DaysRow>
+              </FormGroup>
+              <FormGroup>
                 <Label>Color</Label>
                 <ColorRow>
                   {HABIT_COLORS.map(c => (
@@ -174,16 +223,19 @@ const HabitsPage = () => {
         </EmptyState>
       ) : (
         <>
-          {/* Lista de hábitos con toggles */}
-          <HabitGrid>
-            {habits.map(habit => {
+          {(() => {
+            const todayDayOfWeek = new Date().getDay();
+            const habitsToday = habits.filter(h => (h.days_of_week || [0,1,2,3,4,5,6]).includes(todayDayOfWeek));
+            const habitsOther = habits.filter(h => !(h.days_of_week || [0,1,2,3,4,5,6]).includes(todayDayOfWeek));
+            
+            const renderHabitCard = (habit, isOther = false) => {
               const completedToday = (habit.completions || []).includes(today);
               const streak = getStreak(habit);
               const rate = getCompletionRate(habit);
               return (
-                <HabitCard key={habit.id} $done={completedToday} $color={habit.color}>
+                <HabitCard key={habit.id} $done={completedToday} $color={isOther ? '#475569' : habit.color} $isOther={isOther}>
                   <HabitCardLeft>
-                    <ToggleBtn onClick={() => handleToggle(habit.id)} $done={completedToday}>
+                    <ToggleBtn onClick={() => isOther ? null : handleToggle(habit.id)} $done={completedToday} disabled={isOther}>
                       {completedToday ? <CheckCircle2 size={24} /> : <Circle size={24} />}
                     </ToggleBtn>
                     <HabitInfo>
@@ -193,11 +245,11 @@ const HabitsPage = () => {
                   </HabitCardLeft>
                   <HabitCardRight>
                     <HabitStat>
-                      <Flame size={14} color="#fb923c" />
+                      <Flame size={14} color={isOther ? "#64748b" : "#fb923c"} />
                       <span>{streak}d</span>
                     </HabitStat>
                     <HabitStat>
-                      <BarChart2 size={14} color={p.primaryLight} />
+                      <BarChart2 size={14} color={isOther ? "#64748b" : p.primaryLight} />
                       <span>{rate}%</span>
                     </HabitStat>
                     <ActionBtn onClick={() => handleEdit(habit)} title="Editar"><Edit3 size={14} /></ActionBtn>
@@ -205,8 +257,26 @@ const HabitsPage = () => {
                   </HabitCardRight>
                 </HabitCard>
               );
-            })}
-          </HabitGrid>
+            };
+
+            return (
+              <>
+                {habitsToday.length > 0 && (
+                  <HabitGrid>
+                    {habitsToday.map(h => renderHabitCard(h, false))}
+                  </HabitGrid>
+                )}
+                {habitsOther.length > 0 && (
+                  <>
+                    <SectionTitle>Descanso</SectionTitle>
+                    <HabitGrid>
+                      {habitsOther.map(h => renderHabitCard(h, true))}
+                    </HabitGrid>
+                  </>
+                )}
+              </>
+            );
+          })()}
 
           {/* Calendario de actividad */}
           <CalendarSection>
@@ -229,8 +299,13 @@ const HabitsPage = () => {
                 <CalDay key={`pad-${i}`} style={{ background: 'transparent' }} />
               ))}
               {calendarDays.map(dateStr => {
-                const totalDone = habits.filter(h => (h.completions || []).includes(dateStr)).length;
-                const pct = habits.length > 0 ? totalDone / habits.length : 0;
+                const dDate = new Date(dateStr + 'T12:00:00');
+                const dayOfWeek = dDate.getDay();
+                const scheduledHabits = habits.filter(h => (h.days_of_week || [0,1,2,3,4,5,6]).includes(dayOfWeek));
+                
+                const totalDone = scheduledHabits.filter(h => (h.completions || []).includes(dateStr)).length;
+                const pct = scheduledHabits.length > 0 ? totalDone / scheduledHabits.length : 0;
+                
                 const isToday = dateStr === today;
                 const isFuture = dateStr > today;
                 return (
@@ -239,7 +314,7 @@ const HabitsPage = () => {
                     $pct={pct}
                     $isToday={isToday}
                     $isFuture={isFuture}
-                    title={`${dateStr}: ${totalDone}/${habits.length} hábitos`}
+                    title={`${dateStr}: ${totalDone}/${scheduledHabits.length} hábitos`}
                   >
                     {isToday && <TodayDot />}
                   </CalDay>
@@ -316,13 +391,14 @@ const HabitCard = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: ${props => props.$done ? 'rgba(82,183,136,0.07)' : '#0f172a'};
-  border: 1px solid ${props => props.$done ? `${props.$color}40` : 'rgba(255,255,255,0.05)'};
+  background: ${props => props.$done ? 'rgba(82,183,136,0.07)' : (props.$isOther ? 'rgba(255,255,255,0.02)' : '#0f172a')};
+  border: 1px solid ${props => props.$done ? `${props.$color}40` : (props.$isOther ? 'rgba(255,255,255,0.02)' : 'rgba(255,255,255,0.05)')};
   border-left: 3px solid ${props => props.$color || p.primaryLight};
   border-radius: 12px;
   padding: 1rem 1.25rem;
   transition: all 0.2s;
-  &:hover { transform: translateX(2px); }
+  opacity: ${props => props.$isOther ? 0.6 : 1};
+  &:hover { transform: ${props => props.$isOther ? 'none' : 'translateX(2px)'}; opacity: 1; }
 `;
 
 const HabitCardLeft = styled.div`
@@ -334,12 +410,12 @@ const HabitCardLeft = styled.div`
 const ToggleBtn = styled.button`
   background: transparent;
   border: none;
-  cursor: pointer;
+  cursor: ${props => props.disabled ? 'not-allowed' : 'pointer'};
   color: ${props => props.$done ? p.primaryLight : '#475569'};
   display: flex;
   transition: all 0.2s;
   padding: 0;
-  &:hover { transform: scale(1.1); }
+  &:hover { transform: ${props => props.disabled ? 'none' : 'scale(1.1)'}; }
 `;
 
 const HabitInfo = styled.div``;
@@ -636,6 +712,37 @@ const LoadingText = styled.div`
   color: #64748b;
   padding: 4rem;
   text-align: center;
+`;
+
+const SectionTitle = styled.h3`
+  font-family: 'Unbounded', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #64748b;
+  margin: 1.5rem 0 1rem 0;
+`;
+
+const DaysRow = styled.div`
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+`;
+
+const DaySwatch = styled.button`
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid ${props => props.$selected ? p.primaryLight : 'rgba(255,255,255,0.1)'};
+  background: ${props => props.$selected ? `${p.primaryLight}20` : 'transparent'};
+  color: ${props => props.$selected ? p.primaryLight : '#94a3b8'};
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+  &:hover {
+    border-color: ${p.primaryLight};
+    color: white;
+  }
 `;
 
 export default HabitsPage;

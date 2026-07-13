@@ -11,22 +11,28 @@ export const PersonalHubProvider = ({ children }) => {
   const [habits, setHabits] = useState([]);
   const [goals, setGoals] = useState([]);
   const [vocabulary, setVocabulary] = useState([]);
+  const [fitness, setFitness] = useState({ prs: [], weekly_workouts: 0 });
+  const [journals, setJournals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   const fetchAll = useCallback(async () => {
     try {
       setLoading(true);
-      const [featData, habitsData, goalsData, vocabData] = await Promise.all([
+      const [featData, habitsData, goalsData, vocabData, fitnessData, journalsData] = await Promise.all([
         personalApiService.getFeatures(),
         personalApiService.getHabits(),
         personalApiService.getGoals(),
         personalApiService.getVocabulary(),
+        personalApiService.getFitness(),
+        personalApiService.getJournals().catch(() => ({ journals: [] })), // Fallback si no existe
       ]);
       setFeatures(featData.features || { personal_hub: false, investment_hub: true });
       setHabits(habitsData.habits || []);
       setGoals(goalsData.goals || []);
       setVocabulary(vocabData.vocabulary || []);
+      setFitness(fitnessData || { prs: [], weekly_workouts: 0 });
+      setJournals(journalsData.journals || []);
       setError(null);
     } catch (err) {
       setError(err.message);
@@ -108,6 +114,32 @@ export const PersonalHubProvider = ({ children }) => {
     setVocabulary(prev => prev.filter(w => w.id !== id));
   };
 
+  // ─── Fitness ───────────────────────────────────────────────────────────────
+
+  const updateFitnessPr = async (exercise, record_value) => {
+    await personalApiService.updateFitnessPr(exercise, record_value);
+    await fetchAll(); // Refresh todo para actualizar el PR y el "Último PR"
+  };
+
+  const logWorkout = async () => {
+    await personalApiService.logWorkout();
+    await fetchAll();
+  };
+
+  // ─── Journals ──────────────────────────────────────────────────────────────
+
+  const createJournal = async (journalData) => {
+    const data = await personalApiService.createJournal(journalData);
+    setJournals(prev => [data.journal, ...prev]);
+    return data.journal;
+  };
+
+  const updateJournal = async (id, journalData) => {
+    const data = await personalApiService.updateJournal(id, journalData);
+    setJournals(prev => prev.map(j => j.id === id ? data.journal : j));
+    return data.journal;
+  };
+
   // ─── Feature flags ─────────────────────────────────────────────────────────
 
   const isPersonalHubEnabled = features.personal_hub === true;
@@ -120,6 +152,8 @@ export const PersonalHubProvider = ({ children }) => {
         habits,
         goals,
         vocabulary,
+        fitness,
+        journals,
         loading,
         error,
         createHabit,
@@ -132,6 +166,10 @@ export const PersonalHubProvider = ({ children }) => {
         createVocabulary,
         reviewVocabulary,
         deleteVocabulary,
+        updateFitnessPr,
+        logWorkout,
+        createJournal,
+        updateJournal,
         refresh: fetchAll,
       }}
     >

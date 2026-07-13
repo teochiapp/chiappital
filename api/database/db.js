@@ -217,6 +217,7 @@ async function initializeDatabase() {
       name        VARCHAR(200) NOT NULL,
       description TEXT DEFAULT NULL,
       frequency   ENUM('daily','weekly') NOT NULL DEFAULT 'daily',
+      days_of_week JSON DEFAULT NULL,
       color       VARCHAR(7) DEFAULT '#52B788',
       icon        VARCHAR(50) DEFAULT NULL,
       active      TINYINT(1) NOT NULL DEFAULT 1,
@@ -346,6 +347,31 @@ async function initializeDatabase() {
       INDEX idx_user_vocabulary (user_id, next_review)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
   `);
+
+  // Récords Personales (Fitness)
+  await db.execute(`
+    CREATE TABLE IF NOT EXISTS personal_records (
+      id            INT AUTO_INCREMENT PRIMARY KEY,
+      user_id       INT NOT NULL,
+      exercise      VARCHAR(150) NOT NULL,
+      record_value  VARCHAR(50) NOT NULL,
+      record_date   DATE NOT NULL,
+      created_at    DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at    DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+      UNIQUE KEY idx_user_exercise (user_id, exercise)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `);
+
+  // Migración: Agregar days_of_week a habits
+  try {
+    await db.execute(`ALTER TABLE habits ADD COLUMN days_of_week JSON DEFAULT NULL;`);
+    console.log('✅ Migración: Columna days_of_week agregada a habits');
+  } catch (error) {
+    if (error.code !== 'ER_DUP_FIELDNAME') {
+      console.error('⚠️ Error al agregar days_of_week:', error.message);
+    }
+  }
 
   console.log('✅ Base de datos inicializada correctamente');
 }

@@ -61,19 +61,19 @@ const LanguagesPage = () => {
 
   const handleReview = async (quality) => {
     if (!currentWord || isProcessing) return;
-    
+
     setIsProcessing(true);
     // Primero giramos la tarjeta
     setIsFlipped(false);
-    
+
     // Guardamos el ID antes del delay
     const wordId = currentWord.id;
-    
+
     // Esperamos 1 segundo antes de actualizar la palabra
     setTimeout(async () => {
       await reviewVocabulary(wordId, quality);
       setIsProcessing(false);
-    }, 1000);
+    }, 300);
   };
 
   if (loading) {
@@ -133,19 +133,19 @@ const LanguagesPage = () => {
                 <ActionButtons>
                   <EvalBtn $color="#ef4444" onClick={(e) => { e.stopPropagation(); handleReview(0); }}>
                     <RotateCcw size={18} />
-                    <span>Otra vez<br/><small>(1d)</small></span>
+                    <span>Otra vez<br /><small>(1d)</small></span>
                   </EvalBtn>
                   <EvalBtn $color="#f59e0b" onClick={(e) => { e.stopPropagation(); handleReview(1); }}>
                     <AlertCircle size={18} />
-                    <span>Difícil<br/><small>({currentWord.repetition === 0 ? '1d' : '6d'})</small></span>
+                    <span>Difícil<br /><small>({currentWord.repetition === 0 ? '1d' : '6d'})</small></span>
                   </EvalBtn>
                   <EvalBtn $color="#10b981" onClick={(e) => { e.stopPropagation(); handleReview(2); }}>
                     <CheckCircle size={18} />
-                    <span>Bien<br/><small>(~{Math.round((currentWord.interval_days || 1) * 2.5)}d)</small></span>
+                    <span>Bien<br /><small>(~{Math.round((currentWord.interval_days || 1) * 2.5)}d)</small></span>
                   </EvalBtn>
                   <EvalBtn $color="#3b82f6" onClick={(e) => { e.stopPropagation(); handleReview(3); }}>
                     <CheckCircle size={18} />
-                    <span>Fácil<br/><small>(~{Math.round((currentWord.interval_days || 1) * 2.8)}d)</small></span>
+                    <span>Fácil<br /><small>(~{Math.round((currentWord.interval_days || 1) * 2.8)}d)</small></span>
                   </EvalBtn>
                 </ActionButtons>
               )}
