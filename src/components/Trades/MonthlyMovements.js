@@ -48,6 +48,11 @@ const formatPrice = (val) => {
   return `$${Number(val).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 };
 
+const calcPctGain = (entry, exit) => {
+  if (!entry || !exit || entry === 0) return null;
+  return ((exit - entry) / entry) * 100;
+};
+
 // ─── Componente principal ─────────────────────────────────────────────────────
 
 const MonthlyMovements = ({ trades = [], loading, error }) => {
@@ -273,6 +278,7 @@ const MonthlyMovements = ({ trades = [], loading, error }) => {
                 <EmptySection>Sin ventas este mes</EmptySection>
               ) : (
                 ventas.map((t, i) => {
+                  const pct = calcPctGain(t.entry_price, t.exit_price);
                   return (
                     <MovCard
                       key={`sell-${t.id || i}`}
@@ -295,6 +301,14 @@ const MonthlyMovements = ({ trades = [], loading, error }) => {
                           <MovLabel>Precio salida</MovLabel>
                           <MovValue>{formatPrice(t.exit_price)}</MovValue>
                         </MovRow>
+                        {pct !== null && (
+                          <MovRow>
+                            <MovLabel>Ganancia %</MovLabel>
+                            <PctValue $positive={pct >= 0}>
+                              {pct >= 0 ? '+' : ''}{pct.toFixed(2)}%
+                            </PctValue>
+                          </MovRow>
+                        )}
 
                         <MovRow>
                           <MovLabel>Fecha cierre</MovLabel>

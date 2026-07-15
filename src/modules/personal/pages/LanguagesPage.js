@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import styled, { keyframes } from 'styled-components';
 import { usePersonalHub } from '../../../context/PersonalHubContext';
 import { BookOpen, Plus, Search, Trash2, CheckCircle, HelpCircle, AlertCircle, RotateCcw, Globe } from 'lucide-react';
+import { getUTC3DateString } from '../../../utils/helpers';
 
 const p = {
   primary: '#3b82f6',
@@ -27,11 +28,11 @@ const LanguagesPage = () => {
   const [currentReviewIndex, setCurrentReviewIndex] = useState(0);
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const todayStr = new Date().toISOString().split('T')[0];
+  const todayStr = getUTC3DateString();
 
   const dueVocab = useMemo(() => {
     return vocabulary.filter(w => {
-      const nextRevStr = w.next_review ? new Date(w.next_review).toISOString().split('T')[0] : todayStr;
+      const nextRevStr = w.next_review ? getUTC3DateString(new Date(w.next_review)) : todayStr;
       return nextRevStr <= todayStr;
     });
   }, [vocabulary, todayStr]);

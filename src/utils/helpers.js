@@ -18,3 +18,8 @@ export const calculatePercentage = (value, total) => {
   if (total === 0) return 0;
   return ((value / total) * 100).toFixed(2);
 };
+
+export const getUTC3DateString = (date = new Date()) => {
+  const tzOffset = 3 * 60 * 60 * 1000;
+  return new Date(date.getTime() - tzOffset).toISOString().split('T')[0];
+};

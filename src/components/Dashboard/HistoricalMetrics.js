@@ -162,14 +162,18 @@ const HistoricalMetrics = () => {
   };
 
   const handleSaveEdit = async (id) => {
-    const varPercent = parseFloat(editForm.var_percent) || 0;
+    const start = parseFloat(editForm.usd_start) || 0;
+    const end = parseFloat(editForm.usd_end) || 0;
+    const deposits = parseFloat(editForm.deposits) || 0;
+    
+    const varPercent = start > 0 ? ((end - start) / start) * 100 : 0;
     const varSpy = parseFloat(editForm.var_spy) || 0;
     const calculatedDiff = varPercent - varSpy;
 
     const success = await updateMetric(id, {
-      usd_start: parseFloat(editForm.usd_start),
-      deposits: parseFloat(editForm.deposits),
-      usd_end: parseFloat(editForm.usd_end),
+      usd_start: start,
+      deposits: deposits,
+      usd_end: end,
       var_percent: varPercent,
       var_spy: varSpy,
       difference: calculatedDiff
@@ -193,7 +197,7 @@ const HistoricalMetrics = () => {
   const renderCell = (metric, field, type = 'currency') => {
     const canEditUsdStart = metric.isFirstMonth;
 
-    if (editingId === metric.id && field !== 'difference' && field !== 'profit' && (field !== 'usd_start' || canEditUsdStart)) {
+    if (editingId === metric.id && field !== 'difference' && field !== 'profit' && field !== 'var_percent' && (field !== 'usd_start' || canEditUsdStart)) {
       return (
         <Input
           type="number"
@@ -208,10 +212,17 @@ const HistoricalMetrics = () => {
       let val = parseFloat(metric[field]);
       
       // Si estamos editando, mostrar la diferencia en vivo
-      if (editingId === metric.id && field === 'difference') {
-        const varP = parseFloat(editForm.var_percent) || 0;
+      if (editingId === metric.id) {
+        const start = parseFloat(editForm.usd_start) || 0;
+        const end = parseFloat(editForm.usd_end) || 0;
+        const varP = start > 0 ? ((end - start) / start) * 100 : 0;
         const varS = parseFloat(editForm.var_spy) || 0;
-        val = varP - varS;
+
+        if (field === 'var_percent') {
+          val = varP;
+        } else if (field === 'difference') {
+          val = varP - varS;
+        }
       }
 
       const isPositive = val > 0;

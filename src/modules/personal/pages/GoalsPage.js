@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { usePersonalHub } from '../../../context/PersonalHubContext';
 import { colors } from '../../../styles/colors';
+import { getUTC3DateString } from '../../../utils/helpers';
 
 const p = colors.personal;
 
@@ -38,7 +39,7 @@ const get12WeekYearStats = () => {
     year: now.getFullYear(),
     week: currentWeek,
     daysLeft,
-    quarterEndStr: quarterEnd.toISOString().split('T')[0],
+    quarterEndStr: getUTC3DateString(quarterEnd),
     progressPct
   };
 };

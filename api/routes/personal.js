@@ -3,6 +3,12 @@ const express = require('express');
 const { getPool } = require('../database/db');
 const { authenticate } = require('../middleware/auth');
 
+// Helper para obtener YYYY-MM-DD en UTC-3
+const getUTC3DateString = (date = new Date()) => {
+  const tzOffset = 3 * 60 * 60 * 1000;
+  return new Date(date.getTime() - tzOffset).toISOString().split('T')[0];
+};
+
 const router = express.Router();
 router.use(authenticate);
 
@@ -64,7 +70,7 @@ router.get('/habits', async (req, res) => {
     // Para cada hábito, traer completados de los últimos 90 días
     const ninetyDaysAgo = new Date();
     ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
-    const dateStr = ninetyDaysAgo.toISOString().split('T')[0];
+    const dateStr = getUTC3DateString(ninetyDaysAgo);
 
     const [completions] = await db.execute(
       'SELECT habit_id, completed_on FROM habit_completions WHERE user_id = ? AND completed_on >= ?',
@@ -159,7 +165,7 @@ router.post('/habits/:id/toggle', async (req, res) => {
     const db = getPool();
     const userId = req.user.id;
     const habitId = req.params.id;
-    const today = new Date().toISOString().split('T')[0];
+    const today = getUTC3DateString();
 
     const [existing] = await db.execute(
       'SELECT id FROM habit_completions WHERE habit_id = ? AND user_id = ? AND completed_on = ?',
@@ -286,7 +292,7 @@ router.post('/vocabulary', async (req, res) => {
     const { word, translation, language, notes } = req.body;
     if (!word || !translation) return res.status(400).json({ error: { message: 'word y translation requeridos.' } });
 
-    const today = new Date().toISOString().split('T')[0];
+    const today = getUTC3DateString();
 
     const [result] = await db.execute(
       'INSERT INTO vocabulary (user_id, word, translation, language, notes, next_review) VALUES (?, ?, ?, ?, ?, ?)',
@@ -338,7 +344,7 @@ router.put('/vocabulary/:id/review', async (req, res) => {
     // Calcular próxima fecha
     const nextReviewDate = new Date();
     nextReviewDate.setDate(nextReviewDate.getDate() + interval_days);
-    const nextReviewStr = nextReviewDate.toISOString().split('T')[0];
+    const nextReviewStr = getUTC3DateString(nextReviewDate);
 
     await db.execute(
       `UPDATE vocabulary SET 
@@ -396,7 +402,7 @@ router.post('/fitness/workout', async (req, res) => {
   try {
     const db = getPool();
     const userId = req.user.id;
-    const today = new Date().toISOString().split('T')[0];
+    const today = getUTC3DateString();
     
     const [existing] = await db.execute(
       "SELECT id FROM workouts WHERE user_id = ? AND type = 'Fitness' AND date = ?",
@@ -426,7 +432,7 @@ router.put('/fitness/pr', async (req, res) => {
       return res.status(400).json({ error: { message: 'exercise y record_value requeridos.' } });
     }
     
-    const today = new Date().toISOString().split('T')[0];
+    const today = getUTC3DateString();
     
     await db.execute(
       `INSERT INTO personal_records (user_id, exercise, record_value, record_date) 

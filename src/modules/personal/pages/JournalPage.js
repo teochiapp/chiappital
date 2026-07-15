@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { usePersonalHub } from '../../../context/PersonalHubContext';
 import { colors } from '../../../styles/colors';
+import { getUTC3DateString } from '../../../utils/helpers';
 
 const p = colors.personal;
 
@@ -29,7 +30,7 @@ const JournalPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedEntry, setSelectedEntry] = useState(null);
 
-  const today = new Date().toISOString().split('T')[0];
+  const today = getUTC3DateString();
 
   // Encuentra la entrada de hoy
   const todayEntry = useMemo(() => {

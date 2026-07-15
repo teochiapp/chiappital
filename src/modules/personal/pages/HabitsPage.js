@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { usePersonalHub } from '../../../context/PersonalHubContext';
 import { colors } from '../../../styles/colors';
+import { getUTC3DateString } from '../../../utils/helpers';
 
 const p = colors.personal;
 
@@ -28,7 +29,7 @@ const HabitsPage = () => {
   const [formData, setFormData] = useState({ name: '', description: '', color: '#52B788', frequency: 'daily', days_of_week: [0,1,2,3,4,5,6] });
   const [calendarOffset, setCalendarOffset] = useState(0); // months back
 
-  const today = new Date().toISOString().split('T')[0];
+  const today = getUTC3DateString();
 
   const toggleDay = (val) => {
     setFormData(prev => {
@@ -49,7 +50,7 @@ const HabitsPage = () => {
         d.setDate(d.getDate() - 1);
         continue;
       }
-      const ds = d.toISOString().split('T')[0];
+      const ds = getUTC3DateString(d);
       if ((habit.completions || []).includes(ds)) {
         streak++;
         d.setDate(d.getDate() - 1);
@@ -74,7 +75,7 @@ const HabitsPage = () => {
       d.setDate(d.getDate() - i);
       if (days.includes(d.getDay())) {
         scheduled++;
-        if ((habit.completions || []).includes(d.toISOString().split('T')[0])) completed++;
+        if ((habit.completions || []).includes(getUTC3DateString(d))) completed++;
       }
     }
     return scheduled === 0 ? 0 : Math.round((completed / scheduled) * 100);
@@ -89,7 +90,7 @@ const HabitsPage = () => {
     const daysInMonth = new Date(year, month + 1, 0).getDate();
     return Array.from({ length: daysInMonth }, (_, i) => {
       const d = new Date(year, month, i + 1);
-      return d.toISOString().split('T')[0];
+      return getUTC3DateString(d);
     });
   }, [calendarOffset]);
 

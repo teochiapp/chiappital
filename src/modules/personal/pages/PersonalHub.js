@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { usePersonalHub } from '../../../context/PersonalHubContext';
 import { colors } from '../../../styles/colors';
+import { getUTC3DateString } from '../../../utils/helpers';
 
 const p = colors.personal;
 
@@ -15,7 +16,7 @@ const PersonalHub = () => {
   const navigate = useNavigate();
   const { habits, goals, loading } = usePersonalHub();
 
-  const today = new Date().toISOString().split('T')[0];
+  const today = getUTC3DateString();
 
   const todayDayOfWeek = new Date().getDay();
 
@@ -37,7 +38,7 @@ const PersonalHub = () => {
     let streak = 0;
     const date = new Date();
     while (true) {
-      const dateStr = date.toISOString().split('T')[0];
+      const dateStr = getUTC3DateString(date);
       const anyDone = habits.some(h => (h.completions || []).includes(dateStr));
       if (!anyDone && dateStr !== today) break;
       if (anyDone) streak++;
@@ -66,7 +67,7 @@ const PersonalHub = () => {
     return Array.from({ length: 7 }, (_, i) => {
       const d = new Date();
       d.setDate(d.getDate() - (6 - i));
-      const dateStr = d.toISOString().split('T')[0];
+      const dateStr = getUTC3DateString(d);
       const dayOfWeek = d.getDay();
       
       const scheduledHabits = habits.filter(h => (h.days_of_week || [0,1,2,3,4,5,6]).includes(dayOfWeek));

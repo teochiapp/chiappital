@@ -257,7 +257,11 @@ const SymbolSearch = ({ onSymbolSelect, placeholder = "Buscar instrumento...", i
     searchTimeoutRef.current = setTimeout(async () => {
       setLoading(true);
         try {
-          const searchResults = await symbolSearchService.searchSymbols(query);
+          let queryToSearch = query.trim();
+          if (queryToSearch.toUpperCase() === 'BRKB') {
+            queryToSearch = 'BRK.B';
+          }
+          const searchResults = await symbolSearchService.searchSymbols(queryToSearch);
           setResults(searchResults);
           setSelectedIndex(-1);
           // Cargar precios para los resultados
@@ -387,9 +391,14 @@ const SymbolSearch = ({ onSymbolSelect, placeholder = "Buscar instrumento...", i
   };
 
   const handleCustomSymbolCreate = () => {
+    let normalizedSymbol = query.toUpperCase().trim();
+    if (normalizedSymbol === 'BRKB') {
+      normalizedSymbol = 'BRK.B';
+    }
+
     const customSymbol = {
-      symbol: query.toUpperCase(),
-      name: query.toUpperCase(),
+      symbol: normalizedSymbol,
+      name: normalizedSymbol,
       type: 'Custom',
       region: 'Unknown',
       currency: 'USD',
