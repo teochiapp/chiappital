@@ -348,6 +348,20 @@ async function initializeDatabase() {
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
   `);
 
+  // Journals
+  await db.execute(`
+    CREATE TABLE IF NOT EXISTS journals (
+      id          INT AUTO_INCREMENT PRIMARY KEY,
+      user_id     INT NOT NULL,
+      date        DATE NOT NULL,
+      content     TEXT,
+      created_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at  DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+      UNIQUE KEY idx_user_date (user_id, date)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `);
+
   // Récords Personales (Fitness)
   await db.execute(`
     CREATE TABLE IF NOT EXISTS personal_records (

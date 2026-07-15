@@ -372,6 +372,86 @@ router.delete('/vocabulary/:id', async (req, res) => {
     res.status(500).json({ error: { message: 'Error interno del servidor.' } });
   }
 });
+// ─── Journals ──────────────────────────────────────────────────────────────────
+
+// GET /api/personal/journals
+router.get('/journals', async (req, res) => {
+  try {
+    const db = getPool();
+    const userId = req.user.id;
+    const [journals] = await db.execute(
+      'SELECT id, date, content, created_at, updated_at FROM journals WHERE user_id = ? ORDER BY date DESC',
+      [userId]
+    );
+    
+    // Convertir dates a string YYYY-MM-DD para el frontend si no lo hace mysql2 por defecto
+    const formattedJournals = journals.map(j => ({
+      ...j,
+      // Manejar el date en UTC para que mysql2 no reste el timezone y cambie el día
+      date: typeof j.date === 'string' ? j.date.split('T')[0] : getUTC3DateString(j.date)
+    }));
+
+    res.json({ journals: formattedJournals });
+  } catch (error) {
+    console.error('Error obteniendo journals:', error);
+    res.status(500).json({ error: { message: 'Error interno del servidor.' } });
+  }
+});
+
+// POST /api/personal/journals
+router.post('/journals', async (req, res) => {
+  try {
+    const db = getPool();
+    const userId = req.user.id;
+    const { date, content } = req.body;
+    
+    if (!date) return res.status(400).json({ error: { message: 'date requerido.' } });
+
+    const [result] = await db.execute(
+      'INSERT INTO journals (user_id, date, content) VALUES (?, ?, ?)',
+      [userId, date, content || '']
+    );
+    
+    const [rows] = await db.execute('SELECT * FROM journals WHERE id = ?', [result.insertId]);
+    
+    const journal = rows[0];
+    journal.date = typeof journal.date === 'string' ? journal.date.split('T')[0] : getUTC3DateString(journal.date);
+
+    res.status(201).json({ journal });
+  } catch (error) {
+    console.error('Error creando journal:', error);
+    if (error.code === 'ER_DUP_ENTRY') {
+       return res.status(409).json({ error: { message: 'Ya existe un journal para esta fecha.' } });
+    }
+    res.status(500).json({ error: { message: 'Error interno del servidor.' } });
+  }
+});
+
+// PUT /api/personal/journals/:id
+router.put('/journals/:id', async (req, res) => {
+  try {
+    const db = getPool();
+    const userId = req.user.id;
+    const { content } = req.body;
+
+    await db.execute(
+      'UPDATE journals SET content = ? WHERE id = ? AND user_id = ?',
+      [content || '', req.params.id, userId]
+    );
+
+    const [rows] = await db.execute('SELECT * FROM journals WHERE id = ?', [req.params.id]);
+    if (rows.length === 0) return res.status(404).json({ error: { message: 'Journal no encontrado.' } });
+    
+    const journal = rows[0];
+    journal.date = typeof journal.date === 'string' ? journal.date.split('T')[0] : getUTC3DateString(journal.date);
+
+    res.json({ journal });
+  } catch (error) {
+    console.error('Error actualizando journal:', error);
+    res.status(500).json({ error: { message: 'Error interno del servidor.' } });
+  }
+});
+
 // ─── Fitness ──────────────────────────────────────────────────────────────────
 
 // GET /api/personal/fitness

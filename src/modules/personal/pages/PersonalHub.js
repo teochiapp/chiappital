@@ -14,7 +14,7 @@ const p = colors.personal;
 
 const PersonalHub = () => {
   const navigate = useNavigate();
-  const { habits, goals, loading } = usePersonalHub();
+  const { habits, goals, loading, toggleHabit } = usePersonalHub();
 
   const today = getUTC3DateString();
 
@@ -146,7 +146,7 @@ const PersonalHub = () => {
           ) : (
             <HabitList>
               {todayHabits.map(habit => (
-                <HabitItem key={habit.id} $done={habit.completedToday}>
+                <HabitItem key={habit.id} $done={habit.completedToday} onClick={() => toggleHabit(habit.id)} style={{cursor: 'pointer'}}>
                   <HabitDot style={{ background: habit.color || p.primaryLight }} />
                   <HabitName $done={habit.completedToday}>{habit.name}</HabitName>
                   {habit.completedToday
