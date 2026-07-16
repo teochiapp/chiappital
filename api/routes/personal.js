@@ -320,19 +320,36 @@ router.put('/vocabulary/:id/review', async (req, res) => {
     const word = rows[0];
     let { repetition, ease_factor, interval_days } = word;
 
-    // Algoritmo SM-2 simplificado
-    if (quality < 1) {
-      // Si falló (Again)
+    ease_factor = ease_factor || 2.5;
+    interval_days = interval_days || 0;
+
+    // Algoritmo SM-2 simplificado y preciso
+    if (quality === 0) {
       repetition = 0;
-      interval_days = 1;
-    } else {
-      // Si acertó
+      interval_days = 0;
+    } else if (quality === 1) {
+      if (repetition === 0) {
+        interval_days = 0;
+      } else {
+        interval_days = Math.max(1, Math.round(interval_days * 1.2));
+        repetition += 1;
+      }
+    } else if (quality === 2) {
       if (repetition === 0) {
         interval_days = 1;
       } else if (repetition === 1) {
         interval_days = 6;
       } else {
         interval_days = Math.round(interval_days * ease_factor);
+      }
+      repetition += 1;
+    } else if (quality === 3) {
+      if (repetition === 0) {
+        interval_days = 4;
+      } else if (repetition === 1) {
+        interval_days = Math.round(6 * ease_factor);
+      } else {
+        interval_days = Math.round(interval_days * ease_factor * 1.3); // Easy bonus
       }
       repetition += 1;
     }
@@ -407,22 +424,35 @@ router.post('/journals', async (req, res) => {
     
     if (!date) return res.status(400).json({ error: { message: 'date requerido.' } });
 
-    const [result] = await db.execute(
-      'INSERT INTO journals (user_id, date, content) VALUES (?, ?, ?)',
-      [userId, date, content || '']
+    // Verificar si ya existe
+    const [existing] = await db.execute(
+      'SELECT id FROM journals WHERE user_id = ? AND date = ?',
+      [userId, date]
     );
+
+    let journalId;
+    if (existing.length > 0) {
+      journalId = existing[0].id;
+      await db.execute(
+        'UPDATE journals SET content = ? WHERE id = ?',
+        [content || '', journalId]
+      );
+    } else {
+      const [result] = await db.execute(
+        'INSERT INTO journals (user_id, date, content) VALUES (?, ?, ?)',
+        [userId, date, content || '']
+      );
+      journalId = result.insertId;
+    }
     
-    const [rows] = await db.execute('SELECT * FROM journals WHERE id = ?', [result.insertId]);
+    const [rows] = await db.execute('SELECT * FROM journals WHERE id = ?', [journalId]);
     
     const journal = rows[0];
     journal.date = typeof journal.date === 'string' ? journal.date.split('T')[0] : getUTC3DateString(journal.date);
 
-    res.status(201).json({ journal });
+    res.status(existing.length > 0 ? 200 : 201).json({ journal });
   } catch (error) {
     console.error('Error creando journal:', error);
-    if (error.code === 'ER_DUP_ENTRY') {
-       return res.status(409).json({ error: { message: 'Ya existe un journal para esta fecha.' } });
-    }
     res.status(500).json({ error: { message: 'Error interno del servidor.' } });
   }
 });

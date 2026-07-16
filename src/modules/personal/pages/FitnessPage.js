@@ -175,6 +175,18 @@ const Container = styled.div`
   animation: ${fadeUp} 0.35s ease-out;
   max-width: 1200px;
   margin: 0 auto;
+
+  @media (max-width: 768px) {
+    padding: 1.25rem 1rem;
+  }
+
+  @media (max-width: 480px) {
+    padding: 1rem 0.75rem;
+  }
+
+  @media (max-width: 350px) {
+    padding: 0.75rem 0.5rem;
+  }
 `;
 
 const TopBar = styled.div`
@@ -200,9 +212,14 @@ const PageSubtitle = styled.p`
 
 const DashboardGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 3rem;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1.25rem;
+  margin-bottom: 2rem;
+
+  @media (max-width: 480px) {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
 `;
 
 const DashCard = styled.div`
@@ -282,8 +299,13 @@ const LogWorkoutBtn = styled.button`
 
 const RoutineContainer = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 2rem;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+
+  @media (max-width: 480px) {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
 `;
 
 const DayColumn = styled.div`

@@ -27,15 +27,21 @@ const LanguagesPage = () => {
   const [isFlipped, setIsFlipped] = useState(false);
   const [currentReviewIndex, setCurrentReviewIndex] = useState(0);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [delayedIds, setDelayedIds] = useState([]);
 
   const todayStr = getUTC3DateString();
 
   const dueVocab = useMemo(() => {
-    return vocabulary.filter(w => {
-      const nextRevStr = w.next_review ? getUTC3DateString(new Date(w.next_review)) : todayStr;
+    const due = vocabulary.filter(w => {
+      const nextRevStr = w.next_review ? String(w.next_review).split('T')[0] : todayStr;
       return nextRevStr <= todayStr;
     });
-  }, [vocabulary, todayStr]);
+    
+    // Mover las tarjetas marcadas como "Otra vez" al final de la cola
+    const normal = due.filter(w => !delayedIds.includes(w.id));
+    const delayed = due.filter(w => delayedIds.includes(w.id));
+    return [...normal, ...delayed];
+  }, [vocabulary, todayStr, delayedIds]);
 
   const currentWord = dueVocab[currentReviewIndex];
 
@@ -64,17 +70,59 @@ const LanguagesPage = () => {
     if (!currentWord || isProcessing) return;
 
     setIsProcessing(true);
-    // Primero giramos la tarjeta
     setIsFlipped(false);
 
-    // Guardamos el ID antes del delay
     const wordId = currentWord.id;
+    const queueLength = dueVocab.length;
 
-    // Esperamos 1 segundo antes de actualizar la palabra
     setTimeout(async () => {
+      if (quality === 0 || (quality === 1 && currentWord.repetition === 0)) {
+        // Mover al final: agregar a delayed y avanzar índice
+        setDelayedIds(prev => {
+          if (!prev.includes(wordId)) return [...prev, wordId];
+          return prev;
+        });
+        // Avanzar al siguiente (la tarjeta se mueve al final, así que simplemente avanzamos)
+        setCurrentReviewIndex(prev => {
+          // Si solo queda 1 tarjeta (que vuelve al final), quedamos en 0
+          if (queueLength <= 1) return 0;
+          return prev; // el índice queda igual porque la cola se reorganiza
+        });
+      } else {
+        // quality 2 o 3: la tarjeta sale de la cola para hoy, avanzar índice
+        setCurrentReviewIndex(prev => {
+          const nextQueue = queueLength - 1; // la tarjeta va a salir
+          if (nextQueue <= 0) return 0;
+          return prev >= nextQueue ? 0 : prev;
+        });
+      }
       await reviewVocabulary(wordId, quality);
       setIsProcessing(false);
     }, 300);
+  };
+
+  const getIntervalLabel = (quality, word) => {
+    if (!word) return '';
+    let { repetition, interval_days, ease_factor } = word;
+    interval_days = interval_days || 0;
+    ease_factor = ease_factor || 2.5;
+
+    if (quality === 0) return 'Hoy';
+    if (quality === 1) {
+      if (repetition === 0) return 'Hoy';
+      return `~${Math.max(1, Math.round(interval_days * 1.2))}d`;
+    }
+    if (quality === 2) {
+      if (repetition === 0) return '1d';
+      if (repetition === 1) return '6d';
+      return `~${Math.round(interval_days * ease_factor)}d`;
+    }
+    if (quality === 3) {
+      if (repetition === 0) return '4d';
+      if (repetition === 1) return `~${Math.round(6 * ease_factor)}d`;
+      return `~${Math.round(interval_days * ease_factor * 1.3)}d`;
+    }
+    return '';
   };
 
   if (loading) {
@@ -134,19 +182,19 @@ const LanguagesPage = () => {
                 <ActionButtons>
                   <EvalBtn $color="#ef4444" onClick={(e) => { e.stopPropagation(); handleReview(0); }}>
                     <RotateCcw size={18} />
-                    <span>Otra vez<br /><small>(1d)</small></span>
+                    <span>Otra vez<br /><small>({getIntervalLabel(0, currentWord)})</small></span>
                   </EvalBtn>
                   <EvalBtn $color="#f59e0b" onClick={(e) => { e.stopPropagation(); handleReview(1); }}>
                     <AlertCircle size={18} />
-                    <span>Difícil<br /><small>({currentWord.repetition === 0 ? '1d' : '6d'})</small></span>
+                    <span>Difícil<br /><small>({getIntervalLabel(1, currentWord)})</small></span>
                   </EvalBtn>
                   <EvalBtn $color="#10b981" onClick={(e) => { e.stopPropagation(); handleReview(2); }}>
                     <CheckCircle size={18} />
-                    <span>Bien<br /><small>(~{Math.round((currentWord.interval_days || 1) * 2.5)}d)</small></span>
+                    <span>Bien<br /><small>({getIntervalLabel(2, currentWord)})</small></span>
                   </EvalBtn>
                   <EvalBtn $color="#3b82f6" onClick={(e) => { e.stopPropagation(); handleReview(3); }}>
                     <CheckCircle size={18} />
-                    <span>Fácil<br /><small>(~{Math.round((currentWord.interval_days || 1) * 2.8)}d)</small></span>
+                    <span>Fácil<br /><small>({getIntervalLabel(3, currentWord)})</small></span>
                   </EvalBtn>
                 </ActionButtons>
               )}
@@ -188,7 +236,7 @@ const LanguagesPage = () => {
                   <tr key={word.id}>
                     <td><strong>{word.word}</strong></td>
                     <td>{word.translation}</td>
-                    <td>{new Date(word.next_review).toLocaleDateString()}</td>
+                    <td>{word.next_review ? String(word.next_review).split('T')[0].split('-').reverse().join('/') : ''}</td>
                     <td>
                       <DelBtn onClick={() => handleDelete(word.id)}><Trash2 size={16} /></DelBtn>
                     </td>
@@ -247,6 +295,18 @@ const Container = styled.div`
   max-width: 1000px;
   margin: 0 auto;
   animation: ${fadeUp} 0.4s ease-out;
+
+  @media (max-width: 768px) {
+    padding: 1.25rem 1rem;
+  }
+
+  @media (max-width: 480px) {
+    padding: 1rem 0.75rem;
+  }
+
+  @media (max-width: 350px) {
+    padding: 0.75rem 0.5rem;
+  }
 `;
 
 const TopSection = styled.div`
@@ -254,12 +314,20 @@ const TopSection = styled.div`
 `;
 
 const PageTitle = styled.h1`
-  font-size: 1.8rem;
+  font-size: 1.6rem;
   font-family: 'Unbounded', sans-serif;
   margin-bottom: 0.5rem;
   display: flex;
   align-items: center;
   gap: 0.5rem;
+
+  @media (max-width: 480px) {
+    font-size: 1.3rem;
+  }
+
+  @media (max-width: 350px) {
+    font-size: 1.1rem;
+  }
 `;
 
 const PageSubtitle = styled.p`
@@ -279,10 +347,16 @@ const LangBadge = styled.div`
   gap: 0.5rem;
   background: ${props => props.$learning ? `${p.primary}20` : 'rgba(255,255,255,0.05)'};
   border: 1px solid ${props => props.$learning ? p.primary : 'rgba(255,255,255,0.1)'};
-  padding: 0.5rem 1rem;
+  padding: 0.4rem 0.75rem;
   border-radius: 8px;
   font-weight: 500;
+  font-size: 0.85rem;
   color: ${props => props.$learning ? p.primaryLight : '#fff'};
+
+  @media (max-width: 350px) {
+    font-size: 0.78rem;
+    padding: 0.3rem 0.5rem;
+  }
 `;
 
 const LangFlag = styled.span`
@@ -383,10 +457,18 @@ const CardLabel = styled.span`
 `;
 
 const CardWord = styled.h2`
-  font-size: 2.5rem;
+  font-size: 2rem;
   font-family: 'Unbounded', sans-serif;
   margin: 0;
   color: #fff;
+
+  @media (max-width: 480px) {
+    font-size: 1.6rem;
+  }
+
+  @media (max-width: 350px) {
+    font-size: 1.3rem;
+  }
 `;
 
 const CardHint = styled.p`
@@ -397,10 +479,18 @@ const CardHint = styled.p`
 `;
 
 const CardTranslation = styled.h2`
-  font-size: 2.2rem;
+  font-size: 1.8rem;
   font-family: 'Unbounded', sans-serif;
   margin: 0 0 1rem 0;
   color: ${p.primaryLight};
+
+  @media (max-width: 480px) {
+    font-size: 1.4rem;
+  }
+
+  @media (max-width: 350px) {
+    font-size: 1.2rem;
+  }
 `;
 
 const CardNotes = styled.p`
@@ -412,9 +502,15 @@ const CardNotes = styled.p`
 const ActionButtons = styled.div`
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 0.75rem;
-  margin-top: 2rem;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
   animation: ${fadeUp} 0.3s ease-out;
+  width: 100%;
+
+  @media (max-width: 350px) {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.4rem;
+  }
 `;
 
 const EvalBtn = styled.button`
@@ -474,7 +570,10 @@ const ListContainer = styled.div``;
 const ListHeader = styled.div`
   display: flex;
   justify-content: space-between;
+  align-items: center;
   margin-bottom: 1.5rem;
+  gap: 0.75rem;
+  flex-wrap: wrap;
 `;
 
 const SearchBox = styled.div`
@@ -516,8 +615,9 @@ const AddBtn = styled.button`
 const TableWrapper = styled.div`
   background: ${p.bgCard};
   border-radius: 12px;
-  overflow: hidden;
+  overflow-x: auto;
   border: 1px solid rgba(255,255,255,0.05);
+  -webkit-overflow-scrolling: touch;
 `;
 
 const Table = styled.table`
@@ -562,6 +662,12 @@ const ModalOverlay = styled.div`
   justify-content: center;
   z-index: 1000;
   backdrop-filter: blur(4px);
+  padding: 1rem;
+
+  @media (max-width: 480px) {
+    padding: 0;
+    align-items: flex-end;
+  }
 `;
 
 const ModalContent = styled.div`
@@ -571,6 +677,16 @@ const ModalContent = styled.div`
   width: 100%;
   max-width: 400px;
   border: 1px solid rgba(255,255,255,0.1);
+
+  @media (max-width: 480px) {
+    border-radius: 16px 16px 0 0;
+    padding: 1.5rem;
+    max-width: 100%;
+  }
+
+  @media (max-width: 350px) {
+    padding: 1.25rem 1rem;
+  }
 `;
 
 const ModalTitle = styled.h2`

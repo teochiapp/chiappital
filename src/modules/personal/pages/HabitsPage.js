@@ -342,6 +342,18 @@ const Container = styled.div`
   animation: ${fadeUp} 0.35s ease-out;
   max-width: 1000px;
   margin: 0 auto;
+
+  @media (max-width: 768px) {
+    padding: 1.25rem 1rem;
+  }
+
+  @media (max-width: 480px) {
+    padding: 1rem 0.75rem;
+  }
+
+  @media (max-width: 350px) {
+    padding: 0.75rem 0.5rem;
+  }
 `;
 
 const TopBar = styled.div`
@@ -349,14 +361,29 @@ const TopBar = styled.div`
   justify-content: space-between;
   align-items: flex-end;
   margin-bottom: 2rem;
+  gap: 1rem;
+
+  @media (max-width: 480px) {
+    flex-direction: column;
+    align-items: flex-start;
+    margin-bottom: 1.25rem;
+  }
 `;
 
 const PageTitle = styled.h1`
   font-family: 'Unbounded', sans-serif;
-  font-size: 1.75rem;
+  font-size: 1.6rem;
   font-weight: 700;
   color: white;
   margin: 0 0 0.25rem 0;
+
+  @media (max-width: 480px) {
+    font-size: 1.3rem;
+  }
+
+  @media (max-width: 350px) {
+    font-size: 1.1rem;
+  }
 `;
 
 const PageSubtitle = styled.p`
@@ -400,6 +427,16 @@ const HabitCard = styled.div`
   transition: all 0.2s;
   opacity: ${props => props.$isOther ? 0.6 : 1};
   &:hover { transform: ${props => props.$isOther ? 'none' : 'translateX(2px)'}; opacity: 1; }
+
+  @media (max-width: 480px) {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding: 0.85rem 1rem;
+  }
+
+  @media (max-width: 350px) {
+    padding: 0.7rem 0.75rem;
+  }
 `;
 
 const HabitCardLeft = styled.div`
@@ -572,6 +609,12 @@ const FormOverlay = styled.div`
   justify-content: center;
   z-index: 1000;
   animation: ${fadeUp} 0.2s ease-out;
+  padding: 1rem;
+
+  @media (max-width: 480px) {
+    padding: 0;
+    align-items: flex-end;
+  }
 `;
 
 const FormCard = styled.div`
@@ -581,6 +624,18 @@ const FormCard = styled.div`
   padding: 2rem;
   width: 100%;
   max-width: 480px;
+  max-height: 90vh;
+  overflow-y: auto;
+
+  @media (max-width: 480px) {
+    border-radius: 18px 18px 0 0;
+    max-height: 85vh;
+    padding: 1.5rem;
+  }
+
+  @media (max-width: 350px) {
+    padding: 1.25rem 1rem;
+  }
 `;
 
 const FormHeader = styled.div`

@@ -89,8 +89,12 @@ const Container = styled.div`
 
 const Header = styled.div`
   text-align: center;
-  margin-bottom: 4rem;
+  margin-bottom: 3rem;
   animation: ${fadeIn} 0.5s ease-out;
+
+  @media (max-width: 480px) {
+    margin-bottom: 2rem;
+  }
 `;
 
 const TitleContainer = styled.div`
@@ -99,15 +103,27 @@ const TitleContainer = styled.div`
   justify-content: center;
   gap: 1rem;
   margin-bottom: 1rem;
+
+  @media (max-width: 350px) {
+    gap: 0.5rem;
+  }
 `;
 
 const Title = styled.h1`
-  font-size: 2.5rem;
+  font-size: 2rem;
   font-weight: 800;
   margin: 0;
   background: linear-gradient(to right, #fff, ${colors.secondary});
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+
+  @media (max-width: 480px) {
+    font-size: 1.5rem;
+  }
+
+  @media (max-width: 350px) {
+    font-size: 1.2rem;
+  }
 `;
 
 const Subtitle = styled.p`
@@ -117,13 +133,18 @@ const Subtitle = styled.p`
 
 const CardsWrapper = styled.div`
   display: flex;
-  gap: 2rem;
+  gap: 1.5rem;
   max-width: 900px;
   width: 100%;
   animation: ${fadeIn} 0.7s ease-out forwards;
 
   @media (max-width: 768px) {
     flex-direction: column;
+    gap: 1rem;
+  }
+
+  @media (max-width: 350px) {
+    gap: 0.75rem;
   }
 `;
 
@@ -168,13 +189,22 @@ const AccountCard = styled.div`
   background: rgba(30, 41, 59, 0.5);
   border: 1px solid rgba(255, 255, 255, 0.05);
   border-radius: 24px;
-  padding: 3rem 2rem;
+  padding: 2.5rem 2rem;
   cursor: pointer;
   display: flex;
   flex-direction: column;
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
+
+  @media (max-width: 480px) {
+    padding: 1.5rem;
+    border-radius: 16px;
+  }
+
+  @media (max-width: 350px) {
+    padding: 1.25rem 1rem;
+  }
 
   &::before {
     content: '';
@@ -210,9 +240,13 @@ const AccountCard = styled.div`
 `;
 
 const CardTitle = styled.h2`
-  font-size: 1.8rem;
+  font-size: 1.5rem;
   font-weight: 700;
-  margin-bottom: 1rem;
+  margin-bottom: 0.75rem;
+
+  @media (max-width: 350px) {
+    font-size: 1.2rem;
+  }
 `;
 
 const CardDescription = styled.p`

@@ -127,6 +127,17 @@ const LoginCard = styled.div`
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
   z-index: 1;
   animation: ${fadeIn} 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+
+  @media (max-width: 480px) {
+    padding: 2rem 1.5rem;
+    border-radius: 16px;
+    max-width: 100%;
+  }
+
+  @media (max-width: 350px) {
+    padding: 1.5rem 1rem;
+    border-radius: 12px;
+  }
 `;
 
 const LogoWrapper = styled.div`
@@ -144,10 +155,15 @@ const Title = styled.h2`
   align-items: center;
   justify-content: center;
   gap: 0.75rem;
-  font-size: 1.25rem;
+  font-size: 1.1rem;
   color: #94a3b8;
   font-weight: 500;
   margin-bottom: 2rem;
+
+  @media (max-width: 350px) {
+    font-size: 0.95rem;
+    gap: 0.5rem;
+  }
 `;
 
 const Form = styled.form`
@@ -157,10 +173,14 @@ const Form = styled.form`
 `;
 
 const Label = styled.label`
-  font-size: 1rem;
+  font-size: 0.88rem;
   font-weight: 500;
   color: #e2e8f0;
   text-align: center;
+
+  @media (max-width: 350px) {
+    font-size: 0.8rem;
+  }
 `;
 
 const InputWrapper = styled.div`

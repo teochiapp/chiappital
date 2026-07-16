@@ -310,8 +310,20 @@ const Container = styled.div`
   color: #e2e8f0;
   padding: 2rem;
   animation: ${fadeUp} 0.35s ease-out;
-  max-width: 1400px;
+  max-width: 1100px;
   margin: 0 auto;
+
+  @media (max-width: 768px) {
+    padding: 1.25rem 1rem;
+  }
+
+  @media (max-width: 480px) {
+    padding: 1rem 0.75rem;
+  }
+
+  @media (max-width: 350px) {
+    padding: 0.75rem 0.5rem;
+  }
 `;
 
 const TopBar = styled.div`
@@ -319,6 +331,13 @@ const TopBar = styled.div`
   justify-content: space-between;
   align-items: flex-end;
   margin-bottom: 1.5rem;
+  gap: 1rem;
+
+  @media (max-width: 480px) {
+    flex-direction: column;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+  }
 `;
 
 const PageTitle = styled.h1`
@@ -451,9 +470,13 @@ const SectionTitle = styled.h3`
 
 const GoalGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 1.25rem;
   padding-bottom: 1rem;
+
+  @media (max-width: 350px) {
+    grid-template-columns: 1fr;
+  }
 `;
 
 const GoalCard = styled.div`
@@ -560,7 +583,6 @@ const StatusBtn = styled.button`
   }
 `;
 
-// Form
 const FormOverlay = styled.div`
   position: fixed;
   inset: 0;
@@ -571,6 +593,12 @@ const FormOverlay = styled.div`
   justify-content: center;
   z-index: 1000;
   animation: ${fadeUp} 0.2s ease-out;
+  padding: 1rem;
+
+  @media (max-width: 480px) {
+    padding: 0;
+    align-items: flex-end;
+  }
 `;
 
 const FormCard = styled.div`
@@ -582,6 +610,16 @@ const FormCard = styled.div`
   max-width: 540px;
   max-height: 90vh;
   overflow-y: auto;
+
+  @media (max-width: 480px) {
+    border-radius: 18px 18px 0 0;
+    max-height: 85vh;
+    padding: 1.5rem;
+  }
+
+  @media (max-width: 350px) {
+    padding: 1.25rem 1rem;
+  }
 `;
 
 const FormHeader = styled.div`

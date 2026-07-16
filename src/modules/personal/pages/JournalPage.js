@@ -6,6 +6,8 @@ import {
   Book, Edit3, Clock, ChevronLeft, ChevronRight, RefreshCw,
   Search, Calendar as CalendarIcon, Save
 } from 'lucide-react';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 import { usePersonalHub } from '../../../context/PersonalHubContext';
 import { colors } from '../../../styles/colors';
 import { getUTC3DateString } from '../../../utils/helpers';
@@ -21,6 +23,21 @@ const PROMPTS = [
   "¿Qué conversación o persona tuvo un impacto en mí hoy?",
 ];
 
+const stripHtml = (html) => {
+  if (!html) return '';
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+  return doc.body.textContent || "";
+};
+
+const quillModules = {
+  toolbar: [
+    [{ 'header': [1, 2, 3, false] }],
+    ['bold', 'italic', 'underline', 'strike'],
+    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+    ['link', 'clean']
+  ],
+};
+
 const JournalPage = () => {
   const { journals, createJournal, updateJournal, loading } = usePersonalHub();
   const [activeTab, setActiveTab] = useState('write'); // 'write' | 'history'
@@ -29,6 +46,9 @@ const JournalPage = () => {
   const [promptIndex, setPromptIndex] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedEntry, setSelectedEntry] = useState(null);
+  const [isEditingHistory, setIsEditingHistory] = useState(false);
+  const [historyEditContent, setHistoryEditContent] = useState('');
+  const [historySaveStatus, setHistorySaveStatus] = useState('saved'); // 'saved' | 'saving' | 'error'
 
   const today = getUTC3DateString();
 
@@ -110,20 +130,49 @@ const JournalPage = () => {
   const filteredHistory = useMemo(() => {
     return (journals || [])
       .filter(j => j.date !== today) // Excluir hoy del historial principal
-      .filter(j => j.content?.toLowerCase().includes(searchQuery.toLowerCase()))
+      .filter(j => stripHtml(j.content)?.toLowerCase().includes(searchQuery.toLowerCase()))
       .sort((a, b) => new Date(b.date) - new Date(a.date));
   }, [journals, searchQuery, today]);
 
   const openHistoryEntry = (entry) => {
     setSelectedEntry(entry);
+    setIsEditingHistory(false);
   };
 
   const closeHistoryEntry = () => {
     setSelectedEntry(null);
+    setIsEditingHistory(false);
+  };
+
+  const handleEditHistory = () => {
+    setHistoryEditContent(selectedEntry.content || '');
+    setIsEditingHistory(true);
+  };
+
+  const handleSaveHistory = async () => {
+    if (loading || !selectedEntry) return;
+    if (historyEditContent === selectedEntry.content) {
+      setIsEditingHistory(false);
+      return;
+    }
+    
+    setHistorySaveStatus('saving');
+    try {
+      const updated = await updateJournal(selectedEntry.id, { content: historyEditContent });
+      setSelectedEntry(updated);
+      setIsEditingHistory(false);
+      setHistorySaveStatus('saved');
+    } catch (err) {
+      console.error("Error guardando journal histórico:", err);
+      setHistorySaveStatus('error');
+    }
   };
 
   return (
     <Container>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap');
+      `}</style>
       <Header>
         <div>
           <Title><Book size={24} color={p.primaryLight} /> Daily Journal</Title>
@@ -166,11 +215,11 @@ const JournalPage = () => {
                     {saveStatus === 'error' && 'Error al guardar'}
                   </SaveAction>
                 </EditorHeader>
-                <TextArea
+                <StyledQuill
                   value={currentContent}
-                  onChange={(e) => setCurrentContent(e.target.value)}
+                  onChange={setCurrentContent}
+                  modules={quillModules}
                   placeholder="Empieza a escribir aquí..."
-                  spellCheck="false"
                 />
               </MainEditor>
 
@@ -207,10 +256,36 @@ const JournalPage = () => {
                       <ChevronLeft size={16} /> Volver al índice
                     </BackButton>
                     <BookDate>{formatDate(selectedEntry.date)}</BookDate>
+                    
+                    {!isEditingHistory ? (
+                      <HistoryAction onClick={handleEditHistory}>
+                        <Edit3 size={14} /> Editar
+                      </HistoryAction>
+                    ) : (
+                      <HistorySaveAction 
+                        onClick={handleSaveHistory}
+                        disabled={historySaveStatus === 'saving'}
+                      >
+                        {historySaveStatus === 'saving' ? (
+                          <><RefreshCw size={14} className="spin" /> Guardando...</>
+                        ) : (
+                          <><Save size={14} /> Guardar</>
+                        )}
+                      </HistorySaveAction>
+                    )}
                   </BookHeader>
-                  <BookContent>
-                    {selectedEntry.content}
-                  </BookContent>
+                  
+                  {isEditingHistory ? (
+                    <HistoryEditorContainer>
+                      <StyledQuill
+                        value={historyEditContent}
+                        onChange={setHistoryEditContent}
+                        modules={quillModules}
+                      />
+                    </HistoryEditorContainer>
+                  ) : (
+                    <BookContent dangerouslySetInnerHTML={{ __html: selectedEntry.content }} />
+                  )}
                 </BookView>
               ) : (
                 <>
@@ -235,8 +310,8 @@ const JournalPage = () => {
                         <HistoryCard key={entry.id} onClick={() => openHistoryEntry(entry)}>
                           <CardDate>{formatDate(entry.date)}</CardDate>
                           <CardPreview>
-                            {entry.content?.substring(0, 120)}
-                            {(entry.content?.length || 0) > 120 && '...'}
+                            {stripHtml(entry.content).substring(0, 120)}
+                            {(stripHtml(entry.content).length) > 120 && '...'}
                           </CardPreview>
                           <ReadMore>Leer entrada <ChevronRight size={14} /></ReadMore>
                         </HistoryCard>
@@ -266,6 +341,18 @@ const Container = styled.div`
   margin: 0 auto;
   color: #e2e8f0;
   min-height: calc(100vh - 80px);
+
+  @media (max-width: 768px) {
+    padding: 1.25rem 1rem;
+  }
+
+  @media (max-width: 480px) {
+    padding: 1rem 0.75rem;
+  }
+
+  @media (max-width: 350px) {
+    padding: 0.75rem 0.5rem;
+  }
 `;
 
 const Header = styled.div`
@@ -288,10 +375,19 @@ const Title = styled.h1`
   align-items: center;
   gap: 0.75rem;
   font-family: 'Unbounded', sans-serif;
-  font-size: 1.75rem;
+  font-size: 1.5rem;
   font-weight: 700;
   margin: 0 0 0.5rem 0;
   color: white;
+
+  @media (max-width: 480px) {
+    font-size: 1.2rem;
+  }
+
+  @media (max-width: 350px) {
+    font-size: 1rem;
+    gap: 0.5rem;
+  }
 `;
 
 const Subtitle = styled.p`
@@ -337,6 +433,10 @@ const WriteGrid = styled.div`
   @media (max-width: 900px) {
     grid-template-columns: 1fr;
   }
+
+  @media (max-width: 480px) {
+    gap: 1rem;
+  }
 `;
 
 const MainEditor = styled.div`
@@ -353,8 +453,14 @@ const EditorHeader = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1.5rem;
+  padding: 1rem 1.5rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+  flex-wrap: wrap;
+  gap: 0.5rem;
+
+  @media (max-width: 480px) {
+    padding: 0.75rem 1rem;
+  }
 `;
 
 const DateDisplay = styled.div`
@@ -362,9 +468,13 @@ const DateDisplay = styled.div`
   align-items: center;
   gap: 0.5rem;
   font-weight: 600;
-  font-size: 1.1rem;
+  font-size: 0.95rem;
   color: white;
   text-transform: capitalize;
+
+  @media (max-width: 350px) {
+    font-size: 0.82rem;
+  }
 `;
 
 const SaveAction = styled.button`
@@ -395,21 +505,84 @@ const SaveAction = styled.button`
   }
 `;
 
-const TextArea = styled.textarea`
+const StyledQuill = styled(ReactQuill)`
   flex: 1;
-  background: transparent;
-  border: none;
-  padding: 2rem;
-  color: #e2e8f0;
-  font-size: 1.1rem;
-  line-height: 1.8;
-  resize: none;
-  outline: none;
-  font-family: 'Inter', sans-serif;
+  display: flex;
+  flex-direction: column;
   
-  &::placeholder {
-    color: #475569;
-    font-style: italic;
+  .ql-toolbar {
+    border: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 1rem 1.5rem;
+    font-family: 'Inter', sans-serif;
+    
+    button {
+      color: #94a3b8;
+      &:hover {
+        color: white;
+      }
+    }
+    
+    .ql-stroke {
+      stroke: #94a3b8;
+    }
+    .ql-fill {
+      fill: #94a3b8;
+    }
+    .ql-picker {
+      color: #94a3b8;
+    }
+    .ql-active {
+      .ql-stroke { stroke: ${p.primaryLight} !important; }
+      .ql-fill { fill: ${p.primaryLight} !important; }
+      color: ${p.primaryLight} !important;
+    }
+    button:hover {
+      .ql-stroke { stroke: white !important; }
+      .ql-fill { fill: white !important; }
+    }
+    .ql-picker-options {
+      background: #1e293b;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: white;
+    }
+  }
+  
+  .ql-container {
+    border: none;
+    flex: 1;
+    font-size: 1.15rem;
+    font-family: 'Lora', 'Merriweather', 'Georgia', serif;
+    color: #e2e8f0;
+    
+    .ql-editor {
+      padding: 2rem;
+      min-height: 400px;
+      line-height: 1.8;
+      
+      &.ql-blank::before {
+        color: #475569;
+        font-style: italic;
+        left: 2rem;
+      }
+
+      h1, h2, h3 {
+        font-family: 'Unbounded', 'Inter', sans-serif;
+        color: white;
+        margin-top: 1.5rem;
+        margin-bottom: 0.75rem;
+        font-weight: 600;
+      }
+      
+      p {
+        margin-bottom: 1rem;
+      }
+      
+      ul, ol {
+        margin-bottom: 1rem;
+        padding-left: 1.5rem;
+      }
+    }
   }
 `;
 
@@ -632,11 +805,80 @@ const BookDate = styled.div`
 
 const BookContent = styled.div`
   color: #e2e8f0;
-  font-size: 1.1rem;
+  font-size: 1.15rem;
   line-height: 1.8;
-  font-family: 'Inter', sans-serif;
-  white-space: pre-wrap;
+  font-family: 'Lora', 'Merriweather', 'Georgia', serif;
   padding-left: 1rem;
+  
+  h1, h2, h3 {
+    font-family: 'Unbounded', 'Inter', sans-serif;
+    color: white;
+    margin-top: 1.5rem;
+    margin-bottom: 0.75rem;
+    font-weight: 600;
+  }
+  
+  p {
+    margin-bottom: 1rem;
+  }
+  
+  ul, ol {
+    margin-bottom: 1rem;
+    padding-left: 1.5rem;
+  }
+`;
+
+const HistoryAction = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #94a3b8;
+  padding: 0.4rem 0.8rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+  }
+`;
+
+const HistorySaveAction = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(82, 183, 136, 0.15);
+  border: 1px solid rgba(82, 183, 136, 0.4);
+  color: ${p.primaryLight};
+  padding: 0.4rem 0.8rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    background: rgba(82, 183, 136, 0.25);
+  }
+  
+  &:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+  
+  .spin {
+    animation: ${spinAnimation} 1s linear infinite;
+  }
+`;
+
+const HistoryEditorContainer = styled.div`
+  margin-top: 1rem;
+  min-height: 400px;
+  display: flex;
+  flex-direction: column;
 `;
 
 export default JournalPage;

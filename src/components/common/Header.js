@@ -83,7 +83,7 @@ const HeaderContainer = styled.header`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1rem 2rem;
+  padding: 0.75rem 2rem;
   background-color: #1e293b;
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
@@ -91,27 +91,41 @@ const HeaderContainer = styled.header`
   position: sticky;
   top: 0;
   z-index: 1000;
+  gap: 0.5rem;
 
   @media (max-width: 768px) {
+    flex-wrap: wrap;
+    padding: 0.6rem 1rem;
+    gap: 0.5rem;
+  }
+
+  @media (max-width: 480px) {
     flex-direction: column;
-    gap: 1rem;
-    padding: 1rem;
+    align-items: stretch;
+    padding: 0.5rem 0.75rem;
+    gap: 0.4rem;
   }
 `;
 
 const HeaderBrand = styled.div`
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.75rem;
+  flex-shrink: 0;
+
+  @media (max-width: 480px) {
+    justify-content: space-between;
+    width: 100%;
+  }
 `;
 
 const AccountBadge = styled.div`
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.4rem 0.8rem;
+  gap: 0.4rem;
+  padding: 0.3rem 0.6rem;
   border-radius: 20px;
-  font-size: 0.85rem;
+  font-size: 0.78rem;
   font-weight: 600;
 
   &.propia {
@@ -125,11 +139,16 @@ const AccountBadge = styled.div`
     color: #34d399;
     border: 1px solid rgba(16, 185, 129, 0.2);
   }
+
+  @media (max-width: 350px) {
+    font-size: 0.7rem;
+    padding: 0.25rem 0.5rem;
+  }
 `;
 
 const HeaderNav = styled.nav`
   display: flex;
-  gap: 1rem;
+  gap: 0.5rem;
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
@@ -138,49 +157,78 @@ const HeaderNav = styled.nav`
     position: static;
     transform: none;
     justify-content: center;
-    width: 100%;
     flex-wrap: wrap;
+  }
+
+  @media (max-width: 480px) {
+    width: 100%;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    &::-webkit-scrollbar { display: none; }
+    padding-bottom: 2px;
   }
 `;
 
 const NavItem = styled.button`
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.4rem;
   background: ${props => props.$active ? 'rgba(255, 255, 255, 0.1)' : 'transparent'};
   color: ${props => props.$active ? 'white' : '#94a3b8'};
   border: none;
-  padding: 0.5rem 1rem;
+  padding: 0.4rem 0.75rem;
   border-radius: 8px;
-  font-size: 1rem;
+  font-size: 0.88rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
+  white-space: nowrap;
+  min-height: 36px;
 
   &:hover {
     background: rgba(255, 255, 255, 0.1);
     color: white;
   }
+
+  @media (max-width: 480px) {
+    font-size: 0.78rem;
+    padding: 0.35rem 0.6rem;
+  }
+
+  @media (max-width: 350px) {
+    font-size: 0.72rem;
+    padding: 0.3rem 0.5rem;
+    gap: 0.25rem;
+  }
 `;
 
 const HeaderActions = styled.div`
   display: flex;
-  gap: 1rem;
+  gap: 0.75rem;
+  flex-shrink: 0;
+
+  @media (max-width: 480px) {
+    display: none;
+  }
 `;
 
 const SwitchButton = styled.button`
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.4rem;
   background: rgba(255, 255, 255, 0.05);
   color: #e2e8f0;
   border: 1px solid rgba(255, 255, 255, 0.1);
-  padding: 0.5rem 1rem;
+  padding: 0.4rem 0.75rem;
   border-radius: 8px;
-  font-size: 0.95rem;
+  font-size: 0.82rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
+  min-height: 36px;
 
   &:hover {
     background: rgba(255, 255, 255, 0.1);

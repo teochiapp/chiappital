@@ -285,6 +285,18 @@ const Container = styled.div`
   animation: ${fadeUp} 0.4s ease-out;
   max-width: 1200px;
   margin: 0 auto;
+
+  @media (max-width: 768px) {
+    padding: 1.25rem 1rem;
+  }
+
+  @media (max-width: 480px) {
+    padding: 1rem 0.75rem;
+  }
+
+  @media (max-width: 350px) {
+    padding: 0.75rem 0.5rem;
+  }
 `;
 
 const HeroSection = styled.div`
@@ -295,6 +307,18 @@ const HeroSection = styled.div`
   padding: 2.5rem;
   margin-bottom: 2rem;
   overflow: hidden;
+
+  @media (max-width: 480px) {
+    padding: 1.5rem 1.25rem;
+    border-radius: 16px;
+    margin-bottom: 1.25rem;
+  }
+
+  @media (max-width: 350px) {
+    padding: 1.25rem 1rem;
+    border-radius: 12px;
+    margin-bottom: 1rem;
+  }
 `;
 
 const HeroGlow = styled.div`
@@ -332,6 +356,14 @@ const GreetingTitle = styled.h1`
   font-weight: 700;
   color: white;
   margin: 0 0 0.5rem 0;
+
+  @media (max-width: 480px) {
+    font-size: 1.4rem;
+  }
+
+  @media (max-width: 350px) {
+    font-size: 1.2rem;
+  }
 `;
 
 const GreetingSubtitle = styled.p`
@@ -343,10 +375,14 @@ const GreetingSubtitle = styled.p`
 const StatsRow = styled.div`
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 1rem;
+  gap: 0.75rem;
 
   @media (max-width: 768px) {
     grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (max-width: 350px) {
+    gap: 0.5rem;
   }
 `;
 
@@ -354,10 +390,14 @@ const StatCard = styled.div`
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.07);
   border-radius: 12px;
-  padding: 1.25rem;
+  padding: 1rem;
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
+
+  @media (max-width: 350px) {
+    padding: 0.75rem;
+  }
 `;
 
 const StatIcon = styled.div`
@@ -367,9 +407,13 @@ const StatIcon = styled.div`
 
 const StatNumber = styled.div`
   font-family: 'Unbounded', sans-serif;
-  font-size: 1.5rem;
+  font-size: 1.3rem;
   font-weight: 700;
   color: white;
+
+  @media (max-width: 350px) {
+    font-size: 1.1rem;
+  }
 `;
 
 const StatLabel = styled.div`
@@ -392,7 +436,11 @@ const Panel = styled.div`
   background: #0f172a;
   border: 1px solid rgba(255, 255, 255, 0.05);
   border-radius: 16px;
-  padding: 1.5rem;
+  padding: 1.25rem;
+
+  @media (max-width: 350px) {
+    padding: 1rem;
+  }
 `;
 
 const PanelHeader = styled.div`
@@ -561,13 +609,16 @@ const ModuleGrid = styled.div`
   @media (max-width: 600px) {
     grid-template-columns: 1fr;
   }
+  @media (max-width: 350px) {
+    gap: 0.6rem;
+  }
 `;
 
 const ModuleCard = styled.div`
   background: #0f172a;
   border: 1px solid rgba(255, 255, 255, 0.05);
   border-radius: 14px;
-  padding: 1.5rem;
+  padding: 1.25rem;
   cursor: ${props => props.$disabled ? 'default' : 'pointer'};
   opacity: ${props => props.$disabled ? 0.5 : 1};
   position: relative;
@@ -579,6 +630,10 @@ const ModuleCard = styled.div`
       border-color: rgba(82, 183, 136, 0.2);
       transform: translateY(-2px);
     `}
+  }
+
+  @media (max-width: 350px) {
+    padding: 1rem;
   }
 `;
 
