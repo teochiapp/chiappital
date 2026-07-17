@@ -129,9 +129,27 @@ export const PersonalHubProvider = ({ children }) => {
   // ─── Journals ──────────────────────────────────────────────────────────────
 
   const createJournal = async (journalData) => {
-    const data = await personalApiService.createJournal(journalData);
-    setJournals(prev => [data.journal, ...prev]);
-    return data.journal;
+    try {
+      const data = await personalApiService.createJournal(journalData);
+      setJournals(prev => [data.journal, ...prev]);
+      return data.journal;
+    } catch (err) {
+      // Si ya existe un journal para esa fecha (409), hacer upsert
+      if (err.status === 409) {
+        // Buscar la entrada existente por fecha en el estado local
+        const existing = journals.find(j => j.date === journalData.date);
+        if (existing) {
+          return updateJournal(existing.id, { content: journalData.content });
+        }
+        // Si no está en el estado local, refrescar y reintentar
+        await fetchAll();
+        const updated = journals.find(j => j.date === journalData.date);
+        if (updated) {
+          return updateJournal(updated.id, { content: journalData.content });
+        }
+      }
+      throw err;
+    }
   };
 
   const updateJournal = async (id, journalData) => {

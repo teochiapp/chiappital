@@ -6,8 +6,8 @@ import {
   Book, Edit3, Clock, ChevronLeft, ChevronRight, RefreshCw,
   Search, Calendar as CalendarIcon, Save
 } from 'lucide-react';
-import ReactQuill from 'react-quill';
-import 'react-quill/dist/quill.snow.css';
+import ReactQuill from 'react-quill-new';
+import 'react-quill-new/dist/quill.snow.css';
 import { usePersonalHub } from '../../../context/PersonalHubContext';
 import { colors } from '../../../styles/colors';
 import { getUTC3DateString } from '../../../utils/helpers';
@@ -25,8 +25,13 @@ const PROMPTS = [
 
 const stripHtml = (html) => {
   if (!html) return '';
-  const doc = new DOMParser().parseFromString(html, 'text/html');
-  return doc.body.textContent || "";
+  // Reemplazar tags de bloque con espacio para evitar que palabras de distintos párrafos se peguen
+  const withSpaces = html
+    .replace(/<\/?(p|h[1-6]|div|li|br|blockquote)[^>]*>/gi, ' ')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+  const doc = new DOMParser().parseFromString(withSpaces, 'text/html');
+  return (doc.body.textContent || '').replace(/\s{2,}/g, ' ').trim();
 };
 
 const quillModules = {
@@ -559,6 +564,9 @@ const StyledQuill = styled(ReactQuill)`
       padding: 2rem;
       min-height: 400px;
       line-height: 1.8;
+      overflow-wrap: break-word;
+      word-break: break-word;
+      min-width: 0;
       
       &.ql-blank::before {
         color: #475569;
@@ -755,6 +763,8 @@ const BookView = styled(motion.div)`
   border-radius: 8px 24px 24px 8px;
   padding: 3rem;
   min-height: 60vh;
+  overflow: hidden;
+  min-width: 0;
   box-shadow: 
     inset 4px 0 10px rgba(0,0,0,0.1),
     0 20px 50px -10px rgba(0,0,0,0.4);
@@ -809,6 +819,9 @@ const BookContent = styled.div`
   line-height: 1.8;
   font-family: 'Lora', 'Merriweather', 'Georgia', serif;
   padding-left: 1rem;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  min-width: 0;
   
   h1, h2, h3 {
     font-family: 'Unbounded', 'Inter', sans-serif;
@@ -816,6 +829,7 @@ const BookContent = styled.div`
     margin-top: 1.5rem;
     margin-bottom: 0.75rem;
     font-weight: 600;
+    overflow-wrap: break-word;
   }
   
   p {
@@ -825,6 +839,28 @@ const BookContent = styled.div`
   ul, ol {
     margin-bottom: 1rem;
     padding-left: 1.5rem;
+  }
+
+  blockquote {
+    border-left: 3px solid ${p.primary};
+    margin: 1rem 0;
+    padding-left: 1.25rem;
+    color: #94a3b8;
+    font-style: italic;
+  }
+
+  strong {
+    color: white;
+    font-weight: 600;
+  }
+
+  em {
+    color: #cbd5e1;
+  }
+
+  a {
+    color: ${p.primaryLight};
+    text-decoration: underline;
   }
 `;
 
