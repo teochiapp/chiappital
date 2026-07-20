@@ -2,6 +2,7 @@ import React from 'react';
 import styled from 'styled-components';
 import { Outlet } from 'react-router-dom';
 import PersonalHeader from './PersonalHeader';
+import FocusSessionAlert from './FocusSessionAlert';
 
 const LayoutWrapper = styled.div`
   min-height: 100vh;
@@ -19,6 +20,7 @@ const PersonalLayout = () => {
   return (
     <LayoutWrapper>
       <PersonalHeader />
+      <FocusSessionAlert />
       <MainContent>
         <Outlet />
       </MainContent>

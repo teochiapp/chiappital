@@ -237,7 +237,7 @@ const HabitsPage = () => {
                 <HabitCard key={habit.id} $done={completedToday} $color={isOther ? '#475569' : habit.color} $isOther={isOther}>
                   <HabitCardLeft>
                     <ToggleBtn onClick={() => isOther ? null : handleToggle(habit.id)} $done={completedToday} disabled={isOther}>
-                      {completedToday ? <CheckCircle2 size={24} /> : <Circle size={24} />}
+                      {completedToday ? <CheckCircle2 size={28} /> : <Circle size={28} />}
                     </ToggleBtn>
                     <HabitInfo>
                       <HabitName $done={completedToday}>{habit.name}</HabitName>
@@ -451,9 +451,12 @@ const ToggleBtn = styled.button`
   cursor: ${props => props.disabled ? 'not-allowed' : 'pointer'};
   color: ${props => props.$done ? p.primaryLight : '#475569'};
   display: flex;
+  align-items: center;
+  justify-content: center;
   transition: all 0.2s;
   padding: 0;
-  &:hover { transform: ${props => props.disabled ? 'none' : 'scale(1.1)'}; }
+  transform: translateY(-2px);
+  &:hover { transform: ${props => props.disabled ? 'translateY(-2px)' : 'translateY(-2px) scale(1.1)'}; }
 `;
 
 const HabitInfo = styled.div``;

@@ -62,6 +62,12 @@ const personalApiService = {
   getJournals: () => request('GET', '/journals'),
   createJournal: (journalData) => request('POST', '/journals', journalData),
   updateJournal: (id, journalData) => request('PUT', `/journals/${id}`, journalData),
+
+  // Focus Sessions
+  getFocusSessions: () => request('GET', '/focus-sessions'),
+  createFocusSession: (sessionData) => request('POST', '/focus-sessions', sessionData),
+  updateFocusSession: (id, sessionData) => request('PUT', `/focus-sessions/${id}`, sessionData),
+  deleteFocusSession: (id) => request('DELETE', `/focus-sessions/${id}`),
 };
 
 export default personalApiService;

@@ -558,4 +558,88 @@ router.put('/fitness/pr', async (req, res) => {
   }
 });
 
+// ─── Focus Sessions ────────────────────────────────────────────────────────────
+
+// GET /api/personal/focus-sessions
+router.get('/focus-sessions', async (req, res) => {
+  try {
+    const db = getPool();
+    const userId = req.user.id;
+    const [sessions] = await db.execute(
+      'SELECT * FROM focus_sessions WHERE user_id = ? ORDER BY session_date DESC',
+      [userId]
+    );
+    res.json({ sessions });
+  } catch (error) {
+    console.error('Error obteniendo focus sessions:', error);
+    res.status(500).json({ error: { message: 'Error interno del servidor.' } });
+  }
+});
+
+// POST /api/personal/focus-sessions
+router.post('/focus-sessions', async (req, res) => {
+  try {
+    const db = getPool();
+    const userId = req.user.id;
+    const { description, duration, session_date } = req.body;
+    if (!description || !duration || !session_date) {
+      return res.status(400).json({ error: { message: 'description, duration y session_date son requeridos.' } });
+    }
+
+    const [result] = await db.execute(
+      'INSERT INTO focus_sessions (user_id, description, duration, session_date) VALUES (?, ?, ?, ?)',
+      [userId, description, duration, session_date]
+    );
+    const [rows] = await db.execute('SELECT * FROM focus_sessions WHERE id = ?', [result.insertId]);
+    res.status(201).json({ session: rows[0] });
+  } catch (error) {
+    console.error('Error creando focus session:', error);
+    res.status(500).json({ error: { message: 'Error interno del servidor.' } });
+  }
+});
+
+// PUT /api/personal/focus-sessions/:id
+router.put('/focus-sessions/:id', async (req, res) => {
+  try {
+    const db = getPool();
+    const { description, duration, session_date, status } = req.body;
+    
+    await db.execute(
+      `UPDATE focus_sessions SET 
+        description = COALESCE(?, description),
+        duration = COALESCE(?, duration),
+        session_date = COALESCE(?, session_date),
+        status = COALESCE(?, status)
+       WHERE id = ? AND user_id = ?`,
+      [
+        description !== undefined ? description : null,
+        duration !== undefined ? duration : null,
+        session_date !== undefined ? session_date : null,
+        status !== undefined ? status : null,
+        req.params.id,
+        req.user.id
+      ]
+    );
+    
+    const [rows] = await db.execute('SELECT * FROM focus_sessions WHERE id = ?', [req.params.id]);
+    res.json({ session: rows[0] });
+  } catch (error) {
+    console.error('Error actualizando focus session:', error);
+    res.status(500).json({ error: { message: 'Error interno del servidor.' } });
+  }
+});
+
+// DELETE /api/personal/focus-sessions/:id
+router.delete('/focus-sessions/:id', async (req, res) => {
+  try {
+    const db = getPool();
+    await db.execute('DELETE FROM focus_sessions WHERE id = ? AND user_id = ?', [req.params.id, req.user.id]);
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error eliminando focus session:', error);
+    res.status(500).json({ error: { message: 'Error interno del servidor.' } });
+  }
+});
+
 module.exports = router;
+

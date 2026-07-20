@@ -387,6 +387,22 @@ async function initializeDatabase() {
     }
   }
 
+  // Focus Sessions
+  await db.execute(`
+    CREATE TABLE IF NOT EXISTS focus_sessions (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      user_id INT NOT NULL,
+      description VARCHAR(300) NOT NULL,
+      duration INT NOT NULL, /* minutes */
+      session_date DATETIME NOT NULL,
+      status ENUM('pending', 'completed', 'cancelled') NOT NULL DEFAULT 'pending',
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+      INDEX idx_user_sessions (user_id)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `);
+
   console.log('✅ Base de datos inicializada correctamente');
 }
 

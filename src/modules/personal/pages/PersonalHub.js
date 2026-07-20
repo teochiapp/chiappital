@@ -254,11 +254,11 @@ const PersonalHub = () => {
           <ModuleDesc>Reflexiones, aprendizajes y notas diarias</ModuleDesc>
           <ModuleArrow><ArrowRight size={16} /></ModuleArrow>
         </ModuleCard>
-        <ModuleCard $disabled>
-          <ModuleIcon color="#64748b"><BookOpen size={28} /></ModuleIcon>
-          <ModuleName>Libros</ModuleName>
-          <ModuleDesc>Próximamente</ModuleDesc>
-          <ComingSoonBadge>Pronto</ComingSoonBadge>
+        <ModuleCard onClick={() => navigate('/personal/focus')}>
+          <ModuleIcon color="#10b981"><Clock size={28} /></ModuleIcon>
+          <ModuleName>Focus Session</ModuleName>
+          <ModuleDesc>Sesiones de enfoque con música</ModuleDesc>
+          <ModuleArrow><ArrowRight size={16} /></ModuleArrow>
         </ModuleCard>
       </ModuleGrid>
     </Container>

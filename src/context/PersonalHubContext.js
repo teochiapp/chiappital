@@ -13,19 +13,22 @@ export const PersonalHubProvider = ({ children }) => {
   const [vocabulary, setVocabulary] = useState([]);
   const [fitness, setFitness] = useState({ prs: [], weekly_workouts: 0 });
   const [journals, setJournals] = useState([]);
+  const [focusSessions, setFocusSessions] = useState([]);
+  const [activeFocusSession, setActiveFocusSession] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   const fetchAll = useCallback(async () => {
     try {
       setLoading(true);
-      const [featData, habitsData, goalsData, vocabData, fitnessData, journalsData] = await Promise.all([
+      const [featData, habitsData, goalsData, vocabData, fitnessData, journalsData, focusData] = await Promise.all([
         personalApiService.getFeatures(),
         personalApiService.getHabits(),
         personalApiService.getGoals(),
         personalApiService.getVocabulary(),
         personalApiService.getFitness(),
         personalApiService.getJournals().catch(() => ({ journals: [] })), // Fallback si no existe
+        personalApiService.getFocusSessions().catch(() => ({ sessions: [] })),
       ]);
       setFeatures(featData.features || { personal_hub: false, investment_hub: true });
       setHabits(habitsData.habits || []);
@@ -33,6 +36,7 @@ export const PersonalHubProvider = ({ children }) => {
       setVocabulary(vocabData.vocabulary || []);
       setFitness(fitnessData || { prs: [], weekly_workouts: 0 });
       setJournals(journalsData.journals || []);
+      setFocusSessions(focusData.sessions || []);
       setError(null);
     } catch (err) {
       setError(err.message);
@@ -44,6 +48,31 @@ export const PersonalHubProvider = ({ children }) => {
   useEffect(() => {
     fetchAll();
   }, [fetchAll]);
+
+  // Alert check interval for Focus Sessions
+  useEffect(() => {
+    const checkFocusSessions = () => {
+      const now = new Date();
+      const currentActive = focusSessions.find(session => {
+        if (session.status === 'completed' || session.status === 'cancelled') return false;
+        
+        const sessionDate = new Date(session.session_date);
+        const diffMs = sessionDate - now;
+        const diffMins = diffMs / 1000 / 60;
+        
+        // Active if it's within 30 minutes before, OR during the session (up to sessionDate + duration)
+        const durationMins = session.duration || 0;
+        return diffMins <= 30 && diffMins >= -durationMins;
+      });
+      
+      setActiveFocusSession(currentActive || null);
+    };
+
+    // Check immediately and then every minute
+    checkFocusSessions();
+    const interval = setInterval(checkFocusSessions, 60000);
+    return () => clearInterval(interval);
+  }, [focusSessions]);
 
   // ─── Habits ────────────────────────────────────────────────────────────────
 
@@ -158,6 +187,25 @@ export const PersonalHubProvider = ({ children }) => {
     return data.journal;
   };
 
+  // ─── Focus Sessions ────────────────────────────────────────────────────────
+
+  const createFocusSession = async (sessionData) => {
+    const data = await personalApiService.createFocusSession(sessionData);
+    setFocusSessions(prev => [data.session, ...prev]);
+    return data.session;
+  };
+
+  const updateFocusSession = async (id, updates) => {
+    const data = await personalApiService.updateFocusSession(id, updates);
+    setFocusSessions(prev => prev.map(s => s.id === id ? data.session : s));
+    return data.session;
+  };
+
+  const deleteFocusSession = async (id) => {
+    await personalApiService.deleteFocusSession(id);
+    setFocusSessions(prev => prev.filter(s => s.id !== id));
+  };
+
   // ─── Feature flags ─────────────────────────────────────────────────────────
 
   const isPersonalHubEnabled = features.personal_hub === true;
@@ -188,6 +236,12 @@ export const PersonalHubProvider = ({ children }) => {
         logWorkout,
         createJournal,
         updateJournal,
+        focusSessions,
+        activeFocusSession,
+        setActiveFocusSession,
+        createFocusSession,
+        updateFocusSession,
+        deleteFocusSession,
         refresh: fetchAll,
       }}
     >

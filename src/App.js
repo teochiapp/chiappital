@@ -17,6 +17,7 @@ import GoalsPage from './modules/personal/pages/GoalsPage';
 import LanguagesPage from './modules/personal/pages/LanguagesPage';
 import FitnessPage from './modules/personal/pages/FitnessPage';
 import JournalPage from './modules/personal/pages/JournalPage';
+import FocusSessionsPage from './modules/personal/pages/FocusSessionsPage';
 import { PersonalHubProvider } from './context/PersonalHubContext';
 
 // Importar Contexto
@@ -99,6 +100,7 @@ function App() {
                 <Route path="languages" element={<LanguagesPage />} />
                 <Route path="fitness" element={<FitnessPage />} />
                 <Route path="journal" element={<JournalPage />} />
+                <Route path="focus" element={<FocusSessionsPage />} />
               </Route>
 
               <Route path="*" element={<Navigate to="/login" replace />} />
