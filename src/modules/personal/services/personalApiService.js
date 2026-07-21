@@ -68,6 +68,34 @@ const personalApiService = {
   createFocusSession: (sessionData) => request('POST', '/focus-sessions', sessionData),
   updateFocusSession: (id, sessionData) => request('PUT', `/focus-sessions/${id}`, sessionData),
   deleteFocusSession: (id) => request('DELETE', `/focus-sessions/${id}`),
+
+  // ─── Mediterranean Recipes ─────────────────────────────────────────────────
+  getMedRecipes: () => request('GET', '/mediterranean/recipes'),
+  getMedRecipe: (id) => request('GET', `/mediterranean/recipes/${id}`),
+  createMedRecipe: (data) => request('POST', '/mediterranean/recipes', data),
+  updateMedRecipe: (id, data) => request('PUT', `/mediterranean/recipes/${id}`, data),
+  deleteMedRecipe: (id) => request('DELETE', `/mediterranean/recipes/${id}`),
+
+  // Mediterranean History
+  addMedHistory: (data) => request('POST', '/mediterranean/history', data),
+  getMedStats: () => request('GET', '/mediterranean/stats'),
+
+  // Mediterranean Shopping
+  getMedShopping: () => request('GET', '/mediterranean/shopping'),
+  addMedShoppingItems: (items) => request('POST', '/mediterranean/shopping', { items }),
+  toggleMedShoppingItem: (id, checked) => request('PUT', `/mediterranean/shopping/${id}`, { checked }),
+  deleteMedShoppingItem: (id) => request('DELETE', `/mediterranean/shopping/${id}`),
+  clearMedShopping: (onlyChecked = false) => {
+    const token = localStorage.getItem('st_token');
+    return fetch(`${BASE_URL}/mediterranean/shopping/clear?onlyChecked=${onlyChecked}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${token}` },
+    }).then(r => r.json());
+  },
+
+  // Mediterranean Weekly Goals
+  getMedWeeklyGoals: () => request('GET', '/mediterranean/weekly-goals'),
+  updateMedWeeklyGoals: (data) => request('PUT', '/mediterranean/weekly-goals', data),
 };
 
 export default personalApiService;

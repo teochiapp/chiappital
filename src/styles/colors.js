@@ -22,6 +22,17 @@ export const colors = {
     surface: '#0a1f16',      // Fondo oscuro verdoso para cards
   },
 
+  // === RECETARIO MEDITERRÁNEO ===
+  mediterranean: {
+    primary: '#6B8E23',      // Verde oliva
+    light: '#8FAF35',        // Verde oliva claro
+    gold: '#C49A1A',         // Dorado aceite de oliva
+    terra: '#C1440E',        // Terracota mediterránea
+    azure: '#2E6E9E',        // Azul mediterráneo (mar)
+    dark: '#1A2409',         // Fondo oscuro oliva
+    surface: '#0E1A06',      // Card background
+  },
+
   // === COLORES NEUTROS ===
   white: '#F2F2F2',         // Blanco suave - Fondos, tarjetas
   black: '#1a1a1a',         // Negro profundo - Textos principales

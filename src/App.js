@@ -9,6 +9,7 @@ import DashboardContainer from './containers/DashboardContainer';
 import TradeLogsContainer from './containers/TradeLogsContainer';
 import MethodologyContainer from './containers/MethodologyContainer';
 import LabContainer from './containers/LabContainer';
+import ScreenerContainer from './containers/ScreenerContainer';
 
 // Personal Hub
 import PersonalHub from './modules/personal/pages/PersonalHub';
@@ -79,6 +80,14 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <LabContainer />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/screener" 
+                element={
+                  <ProtectedRoute>
+                    <ScreenerContainer />
                   </ProtectedRoute>
                 } 
               />

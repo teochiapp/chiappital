@@ -1,7 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { LayoutDashboard, BookOpen, LogOut, Wallet, Users, ArrowLeftRight, GraduationCap, FlaskConical } from 'lucide-react';
+import { LayoutDashboard, BookOpen, LogOut, Wallet, Users, ArrowLeftRight, GraduationCap, FlaskConical, Search } from 'lucide-react';
 import { useAccount } from '../../context/AccountContext';
 import { useStrapiAuth } from '../../hooks/useApiTrades';
 import AppLogo from './Logo';
@@ -64,6 +64,13 @@ const Header = () => {
         >
           <GraduationCap size={18} />
           Métodología
+        </NavItem>
+        <NavItem
+          $active={location.pathname === '/screener'}
+          onClick={() => navigate('/screener')}
+        >
+          <Search size={18} />
+          Screener
         </NavItem>
       </HeaderNav>
 

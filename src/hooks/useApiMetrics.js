@@ -58,13 +58,19 @@ export const useApiMetrics = () => {
 
   const addMetric = async (month_year, account_type) => {
     try {
-      const response = await apiService.request('/historical-metrics', {
+      const response = await fetch(`${apiService.baseURL}/historical-metrics`, {
         method: 'POST',
+        headers: apiService.getHeaders(),
         body: JSON.stringify({ month_year, account_type })
       });
 
-      if (response && response.data) {
-        setMetrics(prev => [...prev, response.data]);
+      if (!response.ok) {
+        throw new Error('Error al agregar métrica');
+      }
+
+      const data = await response.json();
+      if (data && data.data) {
+        setMetrics(prev => [...prev, data.data]);
         return true;
       }
       return false;

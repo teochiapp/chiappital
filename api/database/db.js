@@ -403,6 +403,94 @@ async function initializeDatabase() {
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
   `);
 
+  // ─── Recetario Mediterráneo ──────────────────────────────────────────────────
+
+  // Recetas mediterráneas
+  await db.execute(`
+    CREATE TABLE IF NOT EXISTS med_recipes (
+      id                INT AUTO_INCREMENT PRIMARY KEY,
+      user_id           INT NOT NULL,
+      name              VARCHAR(300) NOT NULL,
+      origin_country    VARCHAR(100) DEFAULT NULL,
+      category          ENUM('desayuno','almuerzo','cena','snack','postre') NOT NULL DEFAULT 'almuerzo',
+      prep_time         INT DEFAULT NULL,
+      cook_time         INT DEFAULT NULL,
+      difficulty        TINYINT DEFAULT 3,
+      cost              ENUM('$','$$','$$$') DEFAULT '$$',
+      servings          INT DEFAULT 2,
+      calories          INT DEFAULT NULL,
+      protein           DECIMAL(6,2) DEFAULT NULL,
+      carbs             DECIMAL(6,2) DEFAULT NULL,
+      fat               DECIMAL(6,2) DEFAULT NULL,
+      fiber             DECIMAL(6,2) DEFAULT NULL,
+      ingredients       JSON DEFAULT NULL,
+      steps             JSON DEFAULT NULL,
+      tips              JSON DEFAULT NULL,
+      health_tags       JSON DEFAULT NULL,
+      frequency         ENUM('diaria','varias_semana','semanal','ocasional') DEFAULT 'semanal',
+      tags              JSON DEFAULT NULL,
+      learning          JSON DEFAULT NULL,
+      image_url         TEXT DEFAULT NULL,
+      is_favorite       TINYINT(1) DEFAULT 0,
+      created_at        DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at        DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+      INDEX idx_user_recipes (user_id)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `);
+
+  // Historial de recetas cocinadas
+  await db.execute(`
+    CREATE TABLE IF NOT EXISTS med_cooking_history (
+      id           INT AUTO_INCREMENT PRIMARY KEY,
+      user_id      INT NOT NULL,
+      recipe_id    INT NOT NULL,
+      cooked_on    DATE NOT NULL,
+      rating       TINYINT DEFAULT NULL,
+      notes        TEXT DEFAULT NULL,
+      would_change TEXT DEFAULT NULL,
+      created_at   DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+      FOREIGN KEY (recipe_id) REFERENCES med_recipes(id) ON DELETE CASCADE,
+      INDEX idx_user_history (user_id)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `);
+
+  // Lista de compras mediterránea
+  await db.execute(`
+    CREATE TABLE IF NOT EXISTS med_shopping_list (
+      id         INT AUTO_INCREMENT PRIMARY KEY,
+      user_id    INT NOT NULL,
+      name       VARCHAR(200) NOT NULL,
+      qty        VARCHAR(50) DEFAULT NULL,
+      unit       VARCHAR(50) DEFAULT NULL,
+      category   VARCHAR(100) DEFAULT 'otros',
+      recipe_id  INT DEFAULT NULL,
+      checked    TINYINT(1) DEFAULT 0,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+      FOREIGN KEY (recipe_id) REFERENCES med_recipes(id) ON DELETE SET NULL,
+      INDEX idx_user_shopping (user_id)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `);
+
+  // Objetivos semanales mediterráneos
+  await db.execute(`
+    CREATE TABLE IF NOT EXISTS med_weekly_goals (
+      id            INT AUTO_INCREMENT PRIMARY KEY,
+      user_id       INT NOT NULL,
+      week_start    DATE NOT NULL,
+      fish_count    INT DEFAULT 0,
+      legumes_count INT DEFAULT 0,
+      fruit_days    JSON DEFAULT NULL,
+      veggie_days   JSON DEFAULT NULL,
+      created_at    DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at    DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+      UNIQUE KEY idx_user_week (user_id, week_start)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `);
+
   console.log('✅ Base de datos inicializada correctamente');
 }
 

@@ -36,7 +36,7 @@ const LanguagesPage = () => {
       const nextRevStr = w.next_review ? String(w.next_review).split('T')[0] : todayStr;
       return nextRevStr <= todayStr;
     });
-    
+
     // Mover las tarjetas marcadas como "Otra vez" al final de la cola
     const normal = due.filter(w => !delayedIds.includes(w.id));
     const delayed = due.filter(w => delayedIds.includes(w.id));

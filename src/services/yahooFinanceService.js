@@ -171,6 +171,57 @@ class YahooFinanceService {
     }
   }
 
+  // Obtener cotizaciones en bloque (solo Yahoo Finance v7)
+  async getBulkQuotes(symbols) {
+    try {
+      const results = [];
+      const chunkSize = 20; // Yahoo suele permitir hasta 200, usamos 20 por seguridad
+      
+      for (let i = 0; i < symbols.length; i += chunkSize) {
+        const chunk = symbols.slice(i, i + chunkSize);
+        
+        // Ajustar sufijos para Yahoo Finance si es necesario (ej: BMA -> BMA, YPF -> YPF)
+        // La mayoría de los tickers de USA y ADRs funcionan igual.
+        const query = chunk.join(',');
+        
+        await this.waitForRateLimit();
+        
+        const response = await fetch(`https://query1.finance.yahoo.com/v7/finance/quote?symbols=${query}`);
+        
+        if (response.ok) {
+          const data = await response.json();
+          if (data.quoteResponse && data.quoteResponse.result) {
+            data.quoteResponse.result.forEach(q => {
+              results.push({
+                symbol: q.symbol,
+                data: {
+                  price: q.regularMarketPrice,
+                  change: q.regularMarketChange,
+                  changePercent: q.regularMarketChangePercent
+                },
+                error: null
+              });
+            });
+          }
+        }
+      }
+      
+      // Mapear los resultados al orden y formato esperado
+      return symbols.map(symbol => {
+        const found = results.find(r => r.symbol === symbol || r.symbol.startsWith(symbol));
+        return {
+          symbol,
+          data: found ? found.data : null,
+          error: found ? null : 'No data'
+        };
+      });
+
+    } catch (error) {
+      console.error('❌ Yahoo Finance - Error fetching bulk quotes:', error);
+      throw error;
+    }
+  }
+
   // Buscar símbolos
   async searchSymbol(query) {
     try {
